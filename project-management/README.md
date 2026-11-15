@@ -1,34 +1,24 @@
-# Project Management · 操作路由
+# Project Management · 长期项目专用路由
 
-**仅在用户涉及长期 Project 时加载。** 本目录负责项目的持久化身份、意图、状态和恢复；不负责单轮 Task 锚定和通用任务执行方法（见 [Task Harness](../harness/README.md)）。
+仅在涉及**经过确认或准备创建的长期 Project** 时加载。本系统不定义单轮 Task 的执行方法；Task 执行的专项方法统一由 [Evidence](../evidence/README.md) 提供。
 
-## 何为 Project
-
-一个经用户确认、需要在多轮乃至多个 Session 持续推进的工作对象。它不是临时任务清单，也不是聊天归档。
-
-## 一次只选当前操作的协议
-
-| 当前意图 | 首先读取 | 随后按需读取 |
+| 操作 | 加载 | 按需资源 |
 | --- | --- | --- |
-| 新建长期 Project | [Create](protocols/create.md) | 定义字段、模板；有歧义时调用 Grill-me |
-| 修改已有项目的意图、范围、决策或进度 | [Maintain](protocols/maintain.md) | 项目快照 + 受影响字段契约 |
-| 恢复/继续已有项目 | [Resume](protocols/resume.md) | 项目快照 → 当前步骤所需证据 |
+| 创建长期项目 | [Create](protocols/create.md) | 核心字段定义、实例模板、必要时 Clarify |
+| 修改项目定义/状态 | [Maintain](protocols/maintain.md) | 当前实例、受影响字段规范、必要时 Few-shot |
+| 恢复已有项目 | [Resume](protocols/resume.md) | 当前快照 → 必要决策和证明材料 |
 
-## 数据与维护规范的层次
+## 单一事实源
 
-- [Schema 索引](schema/project.md)：数据形状、不变量、字段规范路由。
-- [Definition 字段契约](schema/definition.md)：项目身份、问题、期望成果、范围、验收与约束。
-- [Progress 字段契约](schema/progress.md)：阶段、进度、证据、接续、引用。
-- [实例模板](templates/project.yaml)：只有创建/迁移文件时才读取。
-- [Few-shot：意图与变更](examples/intent.md)、[Few-shot：进度维护](examples/progress.md)：遇到提取或变更判断歧义时才读取，不每轮加载。
-- 实际实例约定存放于仓库根 `projects/<id>/project.yaml`。**实例不存在不能冒充已创建。**
+- [Schema 总索引](schema/project.md)
+- [项目定义字段](schema/definition.md)
+- [项目进度字段](schema/progress.md)
+- [Project 实例模板](templates/project.yaml)
+- [意图与变更示例](examples/intent.md)
+- [进度更新示例](examples/progress.md)
 
-## 全局不变量
+正式实例约定为 `projects/<id>/project.yaml`，文件不存在不能声称已创建。正式创建之前，应先让用户看到具体草案并**明确确认**；修改核心方向和关键约束同样需要确认。
 
-1. **创建前确认**：需求可不完美，但用户必须看过具体草案并明确确认后才能写入正式实例。
-2. **重大变更前确认**：改变项目核心问题、期望成果、关键范围或硬约束，必须展示变更及影响。
-3. **证据约束**：事实性进度只能来自可检查产物或可靠来源。提议不是已完成。
-4. **最小加载**：进入本目录不意味着读全 Schema、所有例子或所有历史。
-5. **容错**：文件缺失、权限不足、状态冲突时说明原因，不补写虚构项目数据。
+> **Terminology**：本仓库的 **Evidence**（大写，Task 执行方法目录）和 Project `references.evidence`（已有结构中表示证明材料的字段）含义不同。V0.2 暂不做破坏性 Schema 迁移。
 
-> **V0 是协议约定**：没有内置事务/锁、后台守护或自动日志压缩。具体读写由宿主 Agent 工具完成。
+不要因进入 Project Management 就加载所有项目 Schema、Few-shot 和操作历史，也不要每轮自动创建 Task 记录。

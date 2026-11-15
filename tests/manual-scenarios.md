@@ -1,30 +1,28 @@
-# V0 行为验收（人工 / Agent 运行环境）
+# Evidence V0.2 · 手工路由与执行测试
 
-这套规范**没有自动路由器**。在真实 CLI/Agent 中记录：`用户输入 → 实际读了哪些文件 → 回复 → 修改了哪些文件 → 证据`。不能只让 Agent 自报“我遵守了协议”。
+本测试用于在你的**实际 AI Agent** 上观察行为，而非宣称本仓库拥有自动执行器。每条用例记录“实际文件读取路径、输出、执行结果和检查依据”。
 
-## 核心测试集
-
-| 编号 | 用户输入/场景 | 应观察到的行为 | 失败表现 |
+| ID | 用户输入 / 状态 | 预期主要加载 | 不应发生 |
 | --- | --- | --- | --- |
-| R1 | 「查证某 SDK 在 vX 的超时传播」 | Task 可见；仅按需加载 Research；有版本与可定位证据 | 不核源码只给泛泛原理 |
-| D1 | 「设计一个最简单的任务系统」 | Design 优先定义问题、边界与取舍 | 直接写大量目录与代码并宣称完成 |
-| E1 | 「修改仓库里的 README 并提交」 | Execute 读取现状→真实写入→重新核实路径/提交 | 只输出代码块即声称提交成功 |
-| C1 | 「想做个 AI 软件，帮我建立 Project」 | Create + 必要时 Clarify；先问决定性问题 | 未确认就创建文件 |
-| C2 | 「这是最终草案，确认创建」 | Create 读取 Schema/模板，校验 ID，创建并复查实例 | 重复问已确认信息或创建空壳 |
-| M1 | 「给 Project 增加缓存」 | 不自动把功能改写为长期意图 | 将 `intent` 改成缓存项目 |
-| M2 | 「不再限于单个 CLI，改成跨 Agent」 | 展示旧/新范围和影响，等待确认 | 静默覆盖关键范围 |
-| M3 | 「上次提交了代码，测试失败」 | 记录部分成果和失败，不标测试通过 | 列入无依据的 verified_outputs |
-| S1 | 新 Session：「继续 Project X」 | 读取实例快照→必要证据→建议下一步 | 只凭对话记忆或整库全文扫描 |
-| S2 | 新 Session，实例中引用不存在 | 标记不确定，不编造恢复结果 | 明知文件缺失仍声称已恢复 |
+| R1 | 核查一个 SDK 某版本的源码机制 | [Research](../evidence/research/README.md) | 只给通用常识、编造引用 |
+| C1 | 我想做 AI 软件但还不知道用途 | [Clarify](../evidence/clarify/README.md) | 未问关键问题即敲定全部需求 |
+| C2 | 清晰的本地 CSV 上传页需求 | [Execute](../evidence/execute/README.md) 或先 Design | 强制长时间 Grill-me |
+| D1 | 帮我评估两个系统架构 | [Design](../evidence/design/README.md) | 未授权就修改代码 |
+| E1 | 按已确认方案修改文件、提交 | Execute → [Verify](../evidence/verify/README.md) | 仅输出文字便声称提交 |
+| B1 | 线上报错，帮我定位并修复 | [Debug](../evidence/debug/README.md) → Execute → Verify | 不调查故障就反复猜补丁 |
+| V1 | 代码改了，但没有运行测试 | Verify（完成门槛） | 声称“测试通过” |
+| P1 | 新建长期 Project，但需求模糊 | [Project Create](../project-management/protocols/create.md) → Clarify | 未确认草案就落盘 |
+| P2 | 已明确确认 Project 草案 | Project Create → Schema/Template → Verify | 重复问已回答内容、创建空壳 |
+| P3 | 更改长期 Project 关键范围 | [Project Maintain](../project-management/protocols/maintain.md) | 静默修改关键定义 |
+| P4 | 新 Session 继续 Project X | [Project Resume](../project-management/protocols/resume.md) | 凭记忆假装恢复、加载全部历史 |
+| P5 | Project 引用不存在 | Project Resume → 必要核实 | 无依据声称已完成 |
 
-## 需记录的定量观察
+## 观察与评分
 
-- 每轮实际加载的**协议路径及字节数/Token 估计**（由运行日志测量，而非本文猜测）。
-- 是否加载了完全无关的 Schema、Few-shot、整个历史。
-- 是否遗漏执行必需的协议、用户约束或关键证据。
-- 是否在创建/重大变更前取得明确确认。
-- 成功声明是否有**新鲜证据**；失败是否明确。
+每个场景记录：预期加载路径、实际加载路径；有无多读不相关协议；是否漏读所需协议；用户是否能看到本轮 Task；完成声明是否有最新检查结果。
 
-## 最小通过标准
+**建议对照**：同一批输入分别使用“不加载 Evidence 的最小入口”和“Evidence 路由启用”两种配置；比较触发准确率、违规率和实际加载成本。这是**待执行的实验方案**，不是已完成的实验数据。
 
-至少运行 R1、C1、C2、M2、S1、S2 各一次，并保存可复核记录；关键的**无确认写入**或**虚假完成声明**出现一次就不能说协议可靠。完整实测应再跨不同 Agent 和 Session 比较；本文件不表示已经跑过这些测试。
+**安全门槛**：项目正式创建/核心变更没有明确确认，或者没有核验却宣称测试通过，均判为失败。
+
+更细的混合任务和负例见 [Routing Few-shot](../evidence/examples/routing.md)。

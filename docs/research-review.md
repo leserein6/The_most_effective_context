@@ -1,30 +1,40 @@
-# V0 外部研究与协议设计取舍
+# Evidence 外部 Skill 调研与设计取舍（V0.2）
 
-> 研究记录不是复制外部 Prompt。以下列明**参考来源 → 可借鉴机制 → 本仓库的选择/不采用项**；社区方案不能替代真实 Agent 验收。
+> 本文给出**具体参考文件**，区分开源 Skill 的原做法与本仓库的改写。参考源是方法论依据，不是自动生效的运行时依赖。
 
-## 参考来源（2026-11-15 查阅）
+## 已核对的成熟来源
 
-1. [Agent Skills 开放规范](https://github.com/agentskills/agentskills)：通过描述发现能力、激活时读主指令、必要时加载附属引用。**采用**三层渐进式加载的思想；**不宣称**本仓库的 `protocols/*.md` 已符合原生 `SKILL.md` 规范。
-2. [Anthropic Skills：skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) 与 [Skill 最佳实践](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)：强调描述的触发边界、短指令、外置参考与真实评估。**采用**清晰激活条件、具体例子、测试用例；**不采用**为了“兼容”而制造未实测的自动加载宣称。
-3. [obra/superpowers](https://github.com/obra/superpowers)：brainstorming、writing-plans、verification-before-completion 等专门 Skill。**采用**澄清最影响决定的问题、先设计再实施、证据先于完成声明；**不采用**“所有任务必须走完整软件开发流程”的强制条件。
-4. [GitHub Spec Kit](https://github.com/github/spec-kit/blob/main/docs/quickstart.md)：需求规格 → 澄清 → 计划 → 实施的分阶段衔接。**采用**区分用户意图、方案与实际产物；**不采用**它的完整命令/分支/规格文档体系（V0 没有这类基础设施）。
-5. [GitHub Awesome Copilot](https://github.com/github/awesome-copilot) 与 [Agent Skills 文件指导](https://github.com/github/awesome-copilot/blob/main/instructions/agent-skills.instructions.md)：区分 Instructions、Prompts 与 Skills，并明确参考资源应按需加载。**采用**职责边界、指令可操作性；**不照搬** Copilot 专有的发现目录和触发机制。
-6. [Claude Code Context 指导](https://support.claude.com/en/articles/14553240-give-claude-context-claude-md-and-better-prompts)：不同平台可能有各自原生的配置文件和文件发现行为。**选择**保留用户指定的通用 `agent.md`，通过宿主适配层显式加载，而非宣称同名文件在任何 CLI 自动生效。
+| 外部来源（源文件） | 原 Skill 的核心机制 | 我们如何采用 / 不采用 |
+| --- | --- | --- |
+| [Agent Skills 规范](https://agentskills.io/specification) | 描述用于发现，主指令在激活时加载，附属资源再按需加载 | 采用 Progressive Disclosure；不冒称 Evidence 为原生 `SKILL.md` 包 |
+| [Anthropic skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) | 定义能力和触发，再使用测试提示评估 Skill 效果 | 用于设计 Evidence 的触发描述与路由测试；未运行其专用 eval 工具 |
+| [Superpowers brainstorming](https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md) | 先读上下文、追问真实动机、审批设计边界 | 用于 [Clarify](../evidence/clarify/README.md) 与 [Design](../evidence/design/README.md)；不强制所有创意任务走完整软件工作流 |
+| [Superpowers writing-plans](https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md) | 任务分解到足以实施，明确验收输出，避免重复代码 | 用于 Design 到 Execute 的交接；不引入其特定计划目录与命令 |
+| [Superpowers executing-plans](https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md) | 按计划执行、将真实检查结果与预期比较、记录偏差 | 用于 [Execute](../evidence/execute/README.md)；不复制强制子 Agent 或专有辅助脚本 |
+| [Superpowers systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) | 先调查根因，形成假设、验证后修复 | 用于 [Debug](../evidence/debug/README.md)；不照搬其所有调试工具细节 |
+| [Superpowers verification-before-completion](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md) | 将具体完成声明与最新检查结果绑定 | 用于 [Verify](../evidence/verify/README.md)；扩展到文档、Project 文件与其他外部修改 |
+| [GitHub Awesome Copilot doc-and-modernize](https://github.com/github/awesome-copilot/blob/main/skills/doc-and-modernize/SKILL.md) | 本地仓库优先调查、记录可追溯代码依据、再写架构文档 | [Research](../evidence/research/README.md) 借鉴其代码调查分支；不直接声称它是通用网络事实查证 Skill |
+| [Superpowers writing-skills](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) | 使用失败场景和 Agent 行为测试迭代协议，减少冗余 | 影响[测试用例](../tests/manual-scenarios.md)的设计；不宣称当前已完成 RED/GREEN 实测 |
 
-## 按文件审查的编辑准则
+## 转化准则
 
-- 每份入口文件只回答：**我负责什么、何时读下一份、何时不要读**。
-- 每份协议必须有：**激活条件、可执行步骤、完成/退出门槛、反例或重要限制**。
-- Project Schema 单一事实来源：字段语义与数据形状放在 Schema，不在 create/maintain/resume 里重复描述。
-- Few-shot 展示**输入 → 判断 → 正确行为**，并提供反例，避免从示例推断不存在的授权。
-- 每次新增字段/规则，要补至少一个正例或反例测试；规则冲突和过度加载同样属于失败。
-- 外部资料仅作为**可追溯的设计依据**，不得直接赋予仓库内容高于宿主指令的权限。
+1. **来源与我们自己的设计分开**：上述文件只作为启发；我们的 Evidence 采用不同名称、宿主无关步骤和自有边界。
+2. **负面触发同样重要**：不仅写“何时加载”，还写“何时不要加载”，避免无关上下文。
+3. **不把大 Skill 原文复制进 Context**：入口只保留索引，操作协议精简，复杂参考按需下钻。
+4. **独立记录适配损失**：例如 Superpowers 用到的 subagent、特定目录、脚本、TDD 基建，不可假定你的 Agent 自带这些能力。
+5. **真实测试优先**：提示词看起来规范，不等于能正确触发、避免问答过度或跨 Session 恢复。
 
-## 尚未验证的假设
+## 命名迁移
 
-- 明确 Task 锚点是否显著改善用户发现理解偏差的速度。
-- 分层协议在不同模型/CLI 下是否能稳定被路由与按需读取。
-- 与简短单文件协议相比，文件拆分的 Token、延迟与执行准确度净收益。
-- Project 快照能否在中断、并行修改后保持可信且可恢复。
+旧 `harness/protocols/*.md` 由 `evidence/<type>/README.md` 取代；`agent.md` 改为路由到 `evidence/README.md`；Project Management 保留自己的操作协议，并且仅在必要时调用 Evidence。
 
-这些必须通过 [手工场景](../tests/manual-scenarios.md) 的实际记录判断，不能只看规范是否写得漂亮。
+**注意**：项目 Schema 里的 `references.evidence` 原意是“证明材料引用”，不是本轮任务执行方法；该字段保留兼容性，避免因目录重命名破坏实例数据。
+
+## 尚待证明
+
+- Agent 是否真正加载被路由到的文件，而非只看目录名称猜内容？
+- 触发与非触发准确率在不同任务/模型上如何？
+- 是否能减少无关 Token，同时避免漏读关键方法？
+- 正向场景通过的同时，是否能处理错误案例、执行中断和用户更正？
+
+方法：记录文件访问轨迹和实际输出，先做无需 Evidence 的基线，再做开启 Evidence 的对照。未完成真实运行前，不得称协议已经经过验证。
