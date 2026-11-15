@@ -1,66 +1,71 @@
 # The Most Effective Context
 
-> 让 AI 在正确的时机，读取完成当前任务所需的**最小充分上下文**。
+> **让 AI 在正确的时机得到正确的上下文，而不是得到最多的上下文。**
 
-这是一个面向通用 AI Agent 的 Markdown 协议实验仓库（V0 Demo）。它不是某个 CLI 的专属配置，也不是已经具备自动调度能力的应用程序；它首先验证**协议分层、按需加载、长期项目连续性**是否有效。
+面向通用 AI Agent 的 **Context Engineering / Agent Protocol V0 实验仓库**。它包含两个独立系统：**单轮任务执行协议**与**跨 Session 的 Project 管理协议**。二者只通过轻量入口关联，不共享生命周期。
 
-## 为什么需要它？
+## 1. 要解决的问题
 
-- **上下文浪费**：把全部规则、历史和示例塞给每一轮任务，耗费上下文窗口，也会引入无关干扰。
-- **任务执行不稳定**：查证、设计、实施、澄清等任务需要不同的方法与验证标准。
-- **长期工作断裂**：新 Session 容易丢失项目意图、决策、进度和下一步。
-- **AI 擅自推断**：需求不明确时直接创建项目，或在维护中悄悄改写重要约束。
+| 真实失效 | 所需机制 | 如何判断有效 |
+| --- | --- | --- |
+| 所有规则常驻 Context，干扰当前任务 | 轻入口 + 按需路由 | 简单查证不加载 Project 全部结构 |
+| Agent 忘记本轮要做什么 | 每轮明确一个可见 Task | 用户能立即指出理解偏差 |
+| 不同任务使用同一套路 | 依主要交付类型选择执行协议 | 查证有证据，实施有可核实产物 |
+| 需求没说清楚便擅自设计 | 按需 Grill-me 与确认门槛 | 不凭空增加关键需求 |
+| 新 Session 无法继续长期工作 | 持久化 Project 当前快照与引用 | 不依赖旧对话也能恢复状态 |
+| 把“写了文件”等同“功能完成” | 证据先于完成声明 | 每个关键结论都有实际核实方式 |
 
-目标不是压缩到最少 Token，而是提高**相关性、充分性、无冗余性、可追溯性**。
+**优化目标**是最小**充分**上下文，而不是最少 Token：缺失必要协议比多读几行更危险。
 
-## 系统组成
+## 2. 架构及职责
 
 ```text
-agent.md                         # 全局轻量入口：识别本轮 Task，按需路由
-├── harness/README.md            # AI Execution Harness：任务执行协议索引
-│   └── protocols/               # research / design / execute / clarify
-└── project-management/README.md # 独立的长期 Project 管理入口
-    ├── protocols/               # create / maintain / resume
-    ├── schema/                  # Project 数据与字段维护契约
-    ├── templates/               # Project 实例模板
-    └── examples/                # 按需读取的 Few-shot
+agent.md                     全局入口：锚定本轮 Task，指向路由器
+├── harness/README.md        单轮 Task 的协议路由
+│   └── protocols/           research / design / execute / clarify
+└── project-management/
+    ├── README.md            Project 专用操作路由
+    ├── protocols/           create / maintain / resume
+    ├── schema/
+    │   ├── project.md       字段索引和全局不变量
+    │   ├── definition.md    项目意图、边界与成果字段
+    │   └── progress.md      状态、证据与接续字段
+    ├── examples/            只有需要时才读 Few-shot
+    └── templates/           项目实例模板
+projects/                    未来实际创建的 Project 实例；V0 不预置假项目
+tests/                       手工行为测试与文件引用检查
+docs/                        设计依据、取舍和外部研究
 ```
 
-**两套系统互不等同。** Task 是单轮临时锚点，不因一次对话自动持久化；Project 是可跨 Session 保存和恢复的长期对象。全局入口仅负责发现并路由，不复制子系统规则。
+**Task ≠ Project**：Task 是本轮可见、临时的执行锚点，不要求写盘；Project 是经过用户确认、跨 Session 持续维护的对象。即使当前 Task 是“创建一个 Project”，两者也不是同一份数据。
 
-## 渐进式加载
+## 3. 加载契约
 
-1. **入口（Discovery）**：先读取 [agent.md](agent.md)，获得最少的全局规则与子系统入口。
-2. **路由（Activation）**：按本轮 Task 读取 [harness/README.md](harness/README.md)；仅在涉及 Project 时读取 [project-management/README.md](project-management/README.md)。
-3. **专项（Execution）**：只加载当前操作对应的协议；遇到确切需要再读取 Schema、Few-shot、项目数据和历史证据。
-4. **执行与验证**：遵守已加载协议，基于可核实结果答复；不把推测当成既成事实。
+- **L0：入口**。Agent 运行环境显式加载 [agent.md](agent.md)。这里只保留跨任务通用的不变量和路由地址。
+- **L1：路由**。依据意图读取 [harness/README.md](harness/README.md)；涉及长期 Project 时额外读取 [project-management/README.md](project-management/README.md)。
+- **L2：执行协议**。选当前操作对应的一个协议。跨步骤任务只在进入下一步骤时补载需要的协议。
+- **L3：具体资源**。Schema、示例、项目状态和证据只有在此步骤需要时才读；加载了入口不代表必须读完子树。
 
 例如：
-- 用户要求「查证某项框架机制」→ `agent.md` → `harness/README.md` → `harness/protocols/research.md`。
-- 用户要求「创建长期项目」→ `agent.md` → `project-management/README.md` → `project-management/protocols/create.md`；当需求模糊时再加载 `harness/protocols/clarify.md`，确认前不得正式创建。
-- 用户要求「继续上一个项目」→ `agent.md` → `project-management/README.md` → `project-management/protocols/resume.md` → 对应项目实例的最小状态。
+- 「核对 Go 某个实现是否线程安全」→ `agent.md` → `harness/README.md` → `research.md`。
+- 「帮我创建一个长期项目」→ `agent.md` → Project README → `create.md` → 必要时 `clarify.md` → 定义 Schema/模板 → **用户确认后才落盘**。
+- 「继续项目 X」→ `agent.md` → Project README → `resume.md` → 项目快照 → 仅所需引用。
 
-## 如何试用 V0
+**限制**：这是遵循 Agent Skills *渐进披露思想* 的 Markdown 协议，不是原生 Skill 包（没有宣称所有文件符合 `SKILL.md` 格式）。`agent.md` 也不是跨工具统一自动发现的标准文件名。某些工具需要显式配置启动入口或采用各自的适配文件。当前没有运行时调度器能强制 Agent 按上述顺序读取。
 
-将此仓库作为 Agent 可读取的工作目录，并在所用 CLI / Agent 的**实际入口配置**中显式指向 `agent.md`（不同产品不会自动识别同名文件）。在对话中分别尝试：
+## 4. 开始使用
 
-1. 「帮我查证一个技术结论」：检查是否只加载 research 相关协议。
-2. 「我想做一个产品，但需求还不清楚，帮我创建 Project」：检查是否先澄清、展示草案并获得明确确认。
-3. 「继续刚才的 Project」：检查是否从持久化状态恢复，而不是凭空补全进度。
+1. 在支持读取工作区文件的 Agent 中打开本仓库。
+2. 在该 Agent/CLI 的实际入口配置中**显式引用** `agent.md`；不要假定单凭文件名就会自动生效。
+3. 按 [tests/manual-scenarios.md](tests/manual-scenarios.md) 分别测试查证、模糊创建、确认后写入、跨 Session 恢复。
+4. 用文件访问日志/实际回复核实行为；记录额外读取和漏读，不靠 Prompt 自我宣称有效。
 
-仓库中的协议是 **可供 Agent 遵守的文本约定**，尚不能在运行时强制保证文件加载顺序、原子写入、跨进程并发一致性或自动日志归档；这些需要后续工程集成和测试。
+文档引用可执行 `python3 tests/check_docs.py` 检查（仅做静态文件引用校验，不验证 Agent 行为）。
 
-## V0 边界与演进
+## 5. V0 范围
 
-V0 只覆盖任务识别与分类路由、四类执行协议、Project 创建/维护/恢复，以及 Project 最小数据与字段维护规则。不提前引入多 Agent 编排、后台任务、复杂日志压缩或通用平台。
+**已定义**：Task 锚定、任务协议路由、Project 创建/维护/恢复、项目字段提取与更新契约、Few-shot、手工验收条件。
 
-后续优先评估：**所加载文件是否必要、是否遗漏关键约束、创建是否经过确认、项目能否真实恢复、执行结果是否可验证**。
+**尚未实现**：CLI 原生适配、自动加载强制执行、Agent 真实行为测试、并发写入控制、运行时状态机、复杂 Log 压缩、多 Agent 调度。因此 V0 是**协议样机**而不是已验证的 Agent 产品。
 
-## 导航
-
-- [全局入口：agent.md](agent.md)
-- [AI 执行协议索引](harness/README.md)
-- [Project 管理索引](project-management/README.md)
-
----
-**状态：V0 协议 Demo，仍需在真实 Agent 环境验证。**
+设计依据与适用边界见 [docs/research-review.md](docs/research-review.md)。协议和外部来源会迭代；修改前先看验证用例是否要同步更新。

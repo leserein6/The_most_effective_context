@@ -1,22 +1,22 @@
-# AI Execution Harness — 路由入口
+# Task Execution Harness · 路由索引
 
-**职责**：决定“本轮 Task 属于哪种工作、应遵守什么执行方法”。Task 是一轮对话的工作锚点，**不落盘**；本模块不管理长期 Project 状态。
+本系统管理**当前一轮 Task 应如何执行**；它不创建 Project、不持久化 Task，也不管理 Session 状态。
 
-进入本目录时，先根据下面的路由表选择**一份主协议**，不要把所有协议同时读入 Context。
+## 根据预期产物路由，而不是匹配关键词
 
-| Task 类型 | 典型触发 | 下一步加载 |
+| 当前主要结果 | 何时选择 | 读取 |
 | --- | --- | --- |
-| Research / 查证 | 求证事实、阅读来源、比较证据、调研 | [protocols/research.md](protocols/research.md) |
-| Design / 设计 | 制定方案、架构设计、权衡选项 | [protocols/design.md](protocols/design.md) |
-| Execute / 实施 | 修改文件、写代码、执行命令、交付产物 | [protocols/execute.md](protocols/execute.md) |
-| Clarify / 澄清 | 需求含糊、关键决策缺失、Grill-me | [protocols/clarify.md](protocols/clarify.md) |
+| **Research**（得到可信结论） | 查事实、查文档/源码、核实争议、比较证据 | [research.md](protocols/research.md) |
+| **Design**（得到可审阅的方案） | 定义系统、评价选项、划分边界、制定技术路线 | [design.md](protocols/design.md) |
+| **Execute**（产生真实外部产物） | 写/改文件、运行操作、提交变更、部署、测试 | [execute.md](protocols/execute.md) |
+| **Clarify**（消除关键歧义） | 需求不足以确定下一步，或明确要求 Grill-me | [clarify.md](protocols/clarify.md) |
 
-## 路由规则
+## 组合规则
 
-1. 先判断本轮**主要预期结果**，不要只按关键词判断；这是 V0 可扩展分类，并不声称覆盖全部任务。
-2. 单个 Task 若包括多步（例如先查证再设计），只加载执行**当前步骤**所需的协议；转到下一类工作时再加载。
-3. 简单、无需专门方法的日常回复可以只遵守 [全局入口](../agent.md)，无需硬套四种分类。
-4. 项目类操作在本系统之外：由 [Project Management](../project-management/README.md) 独立路由。一个项目类 Task 必要时仍可引用此处方法，如澄清。
-5. 全局约束不在各协议重复定义；发现冲突时应暂停高风险动作并明确指出。
+1. **先确定主交付**。同一轮可以经历多个阶段，例如“查证后修复”：开始先按 Research 验证现象，真正修改时再加载 Execute。
+2. Clarify 可以是任务的主要结果，也可以是 Create/Design/Execute 的**按需辅助方法**；不是每次都要提问。
+3. 用户要管理已有 Project 时，按 [Project 路由](../project-management/README.md) 进入；若 Project 操作中需要查证或澄清，再读取对应 Task 协议。
+4. 简单问答若无需专项方法，可以直接作答；不为凑齐分类而制造流程。
+5. 多条规则冲突时先遵守宿主平台的高优先级指令和明确用户权限；不要因仓库文本覆盖安全要求。
 
-**输出要求**：用户能看见本轮 Task、关键结果与尚未完成之处；过程细节依据任务需要控制篇幅。
+**协议加载不是口头声明**：能读文件时应真正读取；不能读取就说明未加载，基于可用信息谨慎完成。

@@ -1,23 +1,32 @@
-# Project V0 模板（实例放到 projects/<project-id>/project.yaml）
-# 创建前请读取 protocols/create.md；确认前不得将草案保存为正式实例。
-id: example-project
-name: "示例项目"
+# V0 Project 实例模板；正式实例位于仓库根 projects/<id>/project.yaml
+# 创建前必须展示草案并获得明确确认。
+# 字段含义以 project-management/schema/ 中的契约为准。
+schema_version: "0.1"
+id: null
+name: null
+
 intent:
-  problem: "待用户确认"
-  desired_outcome: "待用户确认"
-  success_signals: []
+  problem: null
+  desired_outcome: null
+  success_signals: null # 未知用 null；确认后的具体信号使用列表
+
 scope:
-  in: []
-  out: []
-deliverables: []
-constraints: []
+  in: null               # 未界定不等于确认没有
+  out: null
+
+deliverables: null
+constraints: null
+
 state:
-  phase: active
-  summary: "已确认项目定义，尚未开展实施"
-  next_action: "明确第一个可执行步骤"
+  phase: active           # 只用于经用户确认创建后的正式 Project
+  summary: "项目定义已确认；尚无经过验证的实施成果"
+  verified_outputs: []
+  next_action: null       # 若已决定：{description: "...", status: confirmed}
+                          # 仅建议时：{description: "...", status: proposed}
   blockers: []
-  updated_at: null # ISO 8601；只在实际写入时填写可靠时间
+  updated_at: null        # 成功写入时填可靠 ISO 8601 时间；不可编造
+
 references:
-  decisions: null # 仅在文件真实存在时填写相对路径
-  journal: null
+  decisions: null         # 只有指向真实文件时才填写
+  journal: null           # 可选，不存储单轮 Task
   evidence: []
