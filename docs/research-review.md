@@ -14,7 +14,7 @@
 | [Superpowers systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) | 先调查根因，形成假设、验证后修复 | 用于 [Debug](../evidence/debug/README.md)；不照搬其所有调试工具细节 |
 | [Superpowers verification-before-completion](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md) | 将具体完成声明与最新检查结果绑定 | 用于 [Verify](../evidence/verify/README.md)；扩展到文档、Project 文件与其他外部修改 |
 | [GitHub Awesome Copilot doc-and-modernize](https://github.com/github/awesome-copilot/blob/main/skills/doc-and-modernize/SKILL.md) | 本地仓库优先调查、记录可追溯代码依据、再写架构文档 | [Research](../evidence/research/README.md) 借鉴其代码调查分支；不直接声称它是通用网络事实查证 Skill |
-| [Superpowers writing-skills](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) | 使用失败场景和 Agent 行为测试迭代协议，减少冗余 | 影响[测试用例](../tests/manual-scenarios.md)的设计；不宣称当前已完成 RED/GREEN 实测 |
+| [Superpowers writing-skills](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) | 使用失败场景和 Agent 行为测试迭代协议，减少冗余 | 作为后续人工评估方法的参考；当前尚未完成 RED/GREEN 实测 |
 
 ## 转化准则
 
