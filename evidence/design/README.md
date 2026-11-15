@@ -13,5 +13,3 @@
 6. **退出**：用户能识别设计解决了什么、做了哪些取舍、哪些仍待定。设计完成不等于已交付。
 
 若关键需求影响设计，先按需进入 [Clarify](../clarify/README.md)；用户要求落地时再进入 [Execute](../execute/README.md)。
-
-**参考方法**：Superpowers `brainstorming` 的设计审批边界、`writing-plans` 的明确步骤与可验证交接。**不照搬**其软件专用文档路径、命令或每次必须生成大型计划的规定。

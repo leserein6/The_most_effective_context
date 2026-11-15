@@ -20,5 +20,3 @@
 5. 简单、低风险、无需专项方法的回答可以只遵守全局入口；不要让分类本身成为开销。
 
 **有歧义的路由样例**再读 [examples/routing.md](examples/routing.md)。该文件不是每次强制加载。
-
-**与成熟 Skill 的关系**：参照公开 Skill 的方法与边界，经本项目改写为 Evidence；不是直接安装外部 Skill，也不依赖其专有工具。借鉴来源统一记录在 [研究文档](../docs/research-review.md)。

@@ -19,6 +19,4 @@
 
 正式实例约定为 `projects/<id>/project.yaml`，文件不存在不能声称已创建。正式创建之前，应先让用户看到具体草案并**明确确认**；修改核心方向和关键约束同样需要确认。
 
-> **Terminology**：本仓库的 **Evidence**（大写，Task 执行方法目录）和 Project `references.evidence`（已有结构中表示证明材料的字段）含义不同。V0.2 暂不做破坏性 Schema 迁移。
-
 不要因进入 Project Management 就加载所有项目 Schema、Few-shot 和操作历史，也不要每轮自动创建 Task 记录。
