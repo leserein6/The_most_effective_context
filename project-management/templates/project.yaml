@@ -1,0 +1,23 @@
+# Project V0 模板（实例放到 projects/<project-id>/project.yaml）
+# 创建前请读取 protocols/create.md；确认前不得将草案保存为正式实例。
+id: example-project
+name: "示例项目"
+intent:
+  problem: "待用户确认"
+  desired_outcome: "待用户确认"
+  success_signals: []
+scope:
+  in: []
+  out: []
+deliverables: []
+constraints: []
+state:
+  phase: active
+  summary: "已确认项目定义，尚未开展实施"
+  next_action: "明确第一个可执行步骤"
+  blockers: []
+  updated_at: null # ISO 8601；只在实际写入时填写可靠时间
+references:
+  decisions: null # 仅在文件真实存在时填写相对路径
+  journal: null
+  evidence: []
