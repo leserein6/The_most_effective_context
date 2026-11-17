@@ -1,0 +1,90 @@
+{
+  "checked_on": "2026-11-17",
+  "note": "Method references, not executable dependencies; git_blob_sha identifies the content read. Links to main may evolve. No claim of target-model evaluation.",
+  "sources": [
+    {
+      "id": "S01",
+      "repo": "mattpocock/skills",
+      "path": "skills/productivity/grilling/SKILL.md",
+      "url": "https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md",
+      "git_blob_sha": "d2f09a18e6a6c65c55f1271ba08dfeaf06f0bed3"
+    },
+    {
+      "id": "S02",
+      "repo": "mattpocock/skills",
+      "path": "skills/engineering/code-review/SKILL.md",
+      "url": "https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md",
+      "git_blob_sha": "83183e0ad36fd0eef25d37c7e483284b7e34c1f0"
+    },
+    {
+      "id": "S03",
+      "repo": "mattpocock/skills",
+      "path": "skills/productivity/handoff/SKILL.md",
+      "url": "https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md",
+      "git_blob_sha": "a224edc643a20ddb989f9bca1547440169159810"
+    },
+    {
+      "id": "S04",
+      "repo": "obra/superpowers",
+      "path": "skills/brainstorming/SKILL.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md",
+      "git_blob_sha": "9eb0edc7fedf26e1d3e2f3f223e5bcc5058aed6a"
+    },
+    {
+      "id": "S05",
+      "repo": "obra/superpowers",
+      "path": "skills/writing-plans/SKILL.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md",
+      "git_blob_sha": "4cf0275d88d67aa4ef09f4bbca9970ed6ff74a00"
+    },
+    {
+      "id": "S06",
+      "repo": "obra/superpowers",
+      "path": "skills/executing-plans/SKILL.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md",
+      "git_blob_sha": "ea23196d745043eefb0287387112825d2ca99f05"
+    },
+    {
+      "id": "S07",
+      "repo": "obra/superpowers",
+      "path": "skills/systematic-debugging/SKILL.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md",
+      "git_blob_sha": "62fc752aaef59a8bbed5d305f4cadc60f8ae07ed"
+    },
+    {
+      "id": "S08",
+      "repo": "obra/superpowers",
+      "path": "skills/verification-before-completion/SKILL.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md",
+      "git_blob_sha": "7d45333cc4a49c57a80df6c1fe2fa777a207afbc"
+    },
+    {
+      "id": "S09",
+      "repo": "obra/superpowers",
+      "path": "skills/subagent-driven-development/implementer-prompt.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/implementer-prompt.md",
+      "git_blob_sha": "5c8ecd61fba036263bf88d0af24d47125780efa0"
+    },
+    {
+      "id": "S10",
+      "repo": "obra/superpowers",
+      "path": "skills/subagent-driven-development/task-reviewer-prompt.md",
+      "url": "https://github.com/obra/superpowers/blob/main/skills/subagent-driven-development/task-reviewer-prompt.md",
+      "git_blob_sha": "4cf7860a45d386800fc3eaa6f346210146f3c397"
+    },
+    {
+      "id": "S11",
+      "repo": "anthropics/skills",
+      "path": "skills/skill-creator/SKILL.md",
+      "url": "https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md",
+      "git_blob_sha": "65b3a402dbd09b8e83f9d637c6b553875189085c"
+    },
+    {
+      "id": "S12",
+      "repo": "github/awesome-copilot",
+      "path": "skills/acquire-codebase-knowledge/SKILL.md",
+      "url": "https://github.com/github/awesome-copilot/blob/main/skills/acquire-codebase-knowledge/SKILL.md",
+      "git_blob_sha": "0ef102e7a65fecd906998e2b03f86cc435870a46"
+    }
+  ]
+}
