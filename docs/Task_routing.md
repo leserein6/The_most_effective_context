@@ -2,7 +2,7 @@
 
 ## 规则放在哪里
 
-每轮Task锚定写在根 agent.md 的第一节：收到新一轮输入就识别本轮预期结果、对象和关键约束；首次用户可见回复以“本轮 Task（类型）：…”简短显示，类型为 answer/proposal/change/assess/learn 之一。工具回调不新建Task，用户纠正更新目标，Task不独立落盘。
+每轮Task锚定写在根 agent.md 的第一节，并以 HARD GATE 形式约束：首次用户可见回复的第一行固定为 `Project：<id>｜本轮 Task（类型）：…｜Mode：<mode>`。Project ID 必须真实存在，会话首轮可豁免，第二轮起强制；无匹配项目时写 `Project：待确认` 并给出新建/接续选项。Task 类型为 answer/proposal/change/assess/learn，Mode 为 clarify/research/plan/execute/review/learn/orchestrate。工具回调不新建Task，用户纠正更新目标，Task不独立落盘。
 
 Task锚定与一级路由都属于入口职责；Project归属与本轮Task结果分开处理。
 

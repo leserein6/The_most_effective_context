@@ -2,9 +2,24 @@
 
 ## 每轮先锚定 Task
 
-每次收到用户新一轮输入，结合必要上下文确定本轮主要 Task：**这次要交付什么结果、作用于什么对象、受哪些约束**。在本轮首次面向用户的回复开头显示 `本轮 Task（类型）：…`，类型取 answer / proposal / change / assess / learn；简单问题可以很短，不另加确认仪式。类型只用于本轮方法路由，不写进 mode 字段，也不落盘。
+### HARD GATE：Project / Task / Mode
 
-用户补充或纠正时更新理解；临时提问不自动取消既有目标。只有明确取消或替换才放弃原目标。同轮中的工具调用/进度消息不是新 Task。Task 仅用于当前交互，不独立建持久记录。
+**REQUIRED（每轮全部满足）**
+- 首次用户可见回复的第一行固定为 `Project：<id>｜本轮 Task（类型）：…｜Mode：<mode>`。
+- `Project：<id>` 的 ID 必须真实存在于 Index.md 或 History.md，优先 active；会话首轮可写 `Project：无（会话首轮）`，第二轮起不得使用该豁免。
+- Task 类型只取 answer / proposal / change / assess / learn；Mode 只取 clarify / research / plan / execute / review / learn / orchestrate。
+- 无匹配项目时写 `Project：待确认`，并在本轮提出新建或接续的具体选项。
+- 用户改变交付目标时更新 Task 与类型；同轮工具调用不新建 Task。
+
+**FORBIDDEN**
+- 省略 Project、Task 或 Mode 任一项，或改变三项顺序。
+- 只写 `Project：无` 而不说明原因，或未给出选项就跳过锚定。
+- 虚构项目 ID，或把 archived / completed 项目当作 active 接续。
+- 把 Task 类型写进 Mode 字段或任何持久化记录；Mode 按 checkpoint 规则落盘。
+
+**理由**：软提示会被遗漏；三项固定字段让每轮锚定可见、可核对。
+
+用户补充或纠正时更新理解；临时提问不自动取消既有目标。只有明确取消或替换才放弃原目标。Task 仅用于当前交互，不独立建持久记录。
 
 ## 锚定 Project，再按需选方法
 
