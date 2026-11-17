@@ -10,12 +10,12 @@
 | --- | --- | --- |
 | [Agent Skills 规范](https://agentskills.io/specification) | 描述用于发现，主指令在激活时加载，附属资源再按需加载 | 采用 Progressive Disclosure；不冒称 Evidence 为原生 `SKILL.md` 包 |
 | [Anthropic skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) | 定义能力和触发，再使用测试提示评估 Skill 效果 | 用于设计 Evidence 的触发描述与路由测试；未运行其专用 eval 工具 |
-| [Superpowers brainstorming](https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md) | 先读上下文、追问真实动机、审批设计边界 | 用于 [Clarify](../evidence/clarify/README.md) 与 [Design](../evidence/design/README.md)；不强制所有创意任务走完整软件工作流 |
+| [Superpowers brainstorming](https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md) | 先读上下文、追问真实动机、审批设计边界 | 用于 [Clarify](../evidence/methods/clarify.md) 与 [Design](../evidence/methods/design.md)；不强制所有创意任务走完整软件工作流 |
 | [Superpowers writing-plans](https://github.com/obra/superpowers/blob/main/skills/writing-plans/SKILL.md) | 任务分解到足以实施，明确验收输出，避免重复代码 | 用于 Design 到 Execute 的交接；不引入其特定计划目录与命令 |
-| [Superpowers executing-plans](https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md) | 按计划执行、将真实检查结果与预期比较、记录偏差 | 用于 [Execute](../evidence/execute/README.md)；不复制强制子 Agent 或专有辅助脚本 |
-| [Superpowers systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) | 先调查根因，形成假设、验证后修复 | 用于 [Debug](../evidence/debug/README.md)；不照搬其所有调试工具细节 |
-| [Superpowers verification-before-completion](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md) | 将具体完成声明与最新检查结果绑定 | 用于 [Verify](../evidence/verify/README.md)；扩展到文档、Project 文件与其他外部修改 |
-| [GitHub Awesome Copilot doc-and-modernize](https://github.com/github/awesome-copilot/blob/main/skills/doc-and-modernize/SKILL.md) | 本地仓库优先调查、记录可追溯代码依据、再写架构文档 | [Research](../evidence/research/README.md) 借鉴其代码调查分支；不直接声称它是通用网络事实查证 Skill |
+| [Superpowers executing-plans](https://github.com/obra/superpowers/blob/main/skills/executing-plans/SKILL.md) | 按计划执行、将真实检查结果与预期比较、记录偏差 | 用于 [Execute](../evidence/methods/execute.md)；不复制强制子 Agent 或专有辅助脚本 |
+| [Superpowers systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) | 先调查根因，形成假设、验证后修复 | 用于 [Debug](../evidence/methods/debug.md)；不照搬其所有调试工具细节 |
+| [Superpowers verification-before-completion](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md) | 将具体完成声明与最新检查结果绑定 | 用于 [Verify](../evidence/methods/verify.md)；扩展到文档、Project 文件与其他外部修改 |
+| [GitHub Awesome Copilot doc-and-modernize](https://github.com/github/awesome-copilot/blob/main/skills/doc-and-modernize/SKILL.md) | 本地仓库优先调查、记录可追溯代码依据、再写架构文档 | [Research](../evidence/methods/research.md) 借鉴其代码调查分支；不直接声称它是通用网络事实查证 Skill |
 | [Superpowers writing-skills](https://github.com/obra/superpowers/blob/main/skills/writing-skills/SKILL.md) | 使用失败场景和 Agent 行为测试迭代协议，减少冗余 | 作为后续人工评估方法的参考；当前尚未完成 RED/GREEN 实测 |
 
 ## 转化准则
@@ -28,7 +28,7 @@
 
 ## 命名迁移
 
-旧 `harness/protocols/*.md` 由 `evidence/<type>/README.md` 取代；`agent.md` 改为路由到 `evidence/README.md`；Project Management 保留自己的操作协议，并且仅在必要时调用 Evidence。
+旧 `harness/protocols/*.md` 的方法正文现收拢在 `evidence/methods/*.md`；一级路由在根 `agent.md`，二级路由在 `entry/routes/`。Project Management 保留自己的操作协议，并且仅在必要时调用 Evidence。
 
 **注意**：项目 Schema 里的 `references.evidence` 原意是“证明材料引用”，不是本轮任务执行方法；该字段保留兼容性，避免因目录重命名破坏实例数据。
 

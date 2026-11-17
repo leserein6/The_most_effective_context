@@ -4,10 +4,10 @@
 
 | 当前情况 | 读取/执行 |
 |---|---|
-| 关键目标、边界、验收或用户取舍未明确 | [clarify](../clarify/README.md) |
-| 现有能力/技术事实尚无依据 | 按需 [research](../research/README.md)，不要求用户替你查代码 |
-| 需要决定职责、接口、数据流或方案取舍 | [design](../design/README.md) |
-| 方案已明，需要拆文件、依赖、动作和验收 | [plan](../plan/README.md) |
+| 关键目标、边界、验收或用户取舍未明确 | [clarify](../../evidence/methods/clarify.md) |
+| 现有能力/技术事实尚无依据 | 按需 [research](../../evidence/methods/research.md)，不要求用户替你查代码 |
+| 需要决定职责、接口、数据流或方案取舍 | [design](../../evidence/methods/design.md) |
+| 方案已明，需要拆文件、依赖、动作和验收 | [plan](../../evidence/methods/plan.md) |
 
 只做当前缺失部分，不机械走完全部方法。方案产出不等于获得实现授权；用户要求“先给方案别改代码”时交付到此停止。用户已授权设计并实现时，完成必要方案后直接转 change，不反复问继续。
 

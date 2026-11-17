@@ -4,10 +4,10 @@
 
 | 当前情况 | 读取/执行 |
 |---|---|
-| 检查代码/方案的缺陷、遗漏、误解或质量 | [review](../review/README.md) |
-| 判断是否已创建、完成、修复、测试通过 | [verify](../verify/README.md) |
-| 为一个具体审查点查版本/源码事实 | 按需 [research](../research/README.md) |
-| 审查对象/基线/标准实质不明且无法自行确认 | [clarify](../clarify/README.md)；缺规格时不假造需求符合结论 |
+| 检查代码/方案的缺陷、遗漏、误解或质量 | [review](../../evidence/methods/review.md) |
+| 判断是否已创建、完成、修复、测试通过 | [verify](../../evidence/methods/verify.md) |
+| 为一个具体审查点查版本/源码事实 | 按需 [research](../../evidence/methods/research.md) |
+| 审查对象/基线/标准实质不明且无法自行确认 | [clarify](../../evidence/methods/clarify.md)；缺规格时不假造需求符合结论 |
 
 默认只读。已有有效检查不机械重跑；需要针对风险验证时遵守环境与副作用边界。发现问题返回证据，不自动修复或合并；用户授权修复才进入change。
 

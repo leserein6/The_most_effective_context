@@ -2,12 +2,12 @@
 
 核心问题：**本轮用户希望理解、复习或练习什么，当前前置和进度是什么？**
 
-默认读 [learn](../learn/README.md)，恢复学习Project进度。解释相关技术事实需要依据时按需 [research](../research/README.md)，不把用户当作没有基础，也不默认其会所有前置。
+默认读 [learn](../../evidence/methods/learn.md)，恢复学习Project进度。解释相关技术事实需要依据时按需 [research](../../evidence/methods/research.md)，不把用户当作没有基础，也不默认其会所有前置。
 
 | 情况 | 动作 |
 |---|---|
 | 已有明确学习路线/当前知识点 | 按学习协议接续，不重新访谈整套目标 |
-| 当前学习目标实质不明 | 只澄清影响本轮内容的目标；必要时 [clarify](../clarify/README.md) |
+| 当前学习目标实质不明 | 只澄清影响本轮内容的目标；必要时 [clarify](../../evidence/methods/clarify.md) |
 | 用户要求独立做题 | 首次只给题，不先提示解法 |
 | 用户改为“替我实现这个功能” | 转change；不要继续用教学代替交付 |
 

@@ -15,4 +15,4 @@ observed = 实际工具/运行观察；cited = 来源直接支持；inferred = �
 代码审查用 PASS/FAIL/UNVERIFIED 分别描述需求与质量；报告状态与审查结论不要混用。
 不要求输出模型私有思维过程，只需要可审计的事实、选择依据、操作和证据。
 
-完成前执行 [Verify](../verify/README.md)。结构化回传不证明内容真实，主 Agent 仍需验收。
+完成前执行 [Verify](../methods/verify.md)。结构化回传不证明内容真实，主 Agent 仍需验收。

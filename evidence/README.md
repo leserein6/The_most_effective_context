@@ -1,23 +1,14 @@
-# 一级索引：按 Task 交付选择方法组
+# Evidence：给 AI 的工作方法库
 
-核心问题：**本轮用户要得到哪类结果，应进入哪个方法组？**
+核心问题：**选定当前工作后，AI 应用什么思想方法、怎样具体执行并检验结果？**
 
-Task 是本轮预期结果；下表类型是临时路由标签，不是 Project 类型，也不是脚本 mode。不把每次阅读资料都另建一个调查 Task。
+Task 路由由根 [agent.md](../agent.md) 负责，场景分支在 `entry/routes/`。本目录不再承载路由器；不要为选择方法先读完整个库。
 
-| 预期交付 | Task 类型 | 只读取这个二级索引 |
+| 目录 | 内容 | 读取时机 |
 |---|---|---|
-| 获得解释、事实、机制或调查结论 | 了解 answer | [answer](routes/answer.md) |
-| 获得需求、设计、选型或实施计划 | 方案 proposal | [proposal](routes/proposal.md) |
-| 获得实际代码、文件、配置或系统改动 | 修改 change | [change](routes/change.md) |
-| 获得对既有产物的审查、合格性或完成判断 | 评估 assess | [assess](routes/assess.md) |
-| 用户掌握知识、练习能力或继续课程 | 学习 learn | [learn](routes/learn.md) |
+| [methods/](methods/) | 十份方法正文：clarify、research、design、plan、execute、debug、review、verify、orchestrate、learn | 二级路由选中当前方法时 |
+| [prompts/](prompts/README.md) | 可填写的委派、实现、审查等输入/回传模板 | 当前方法要求某份模板时 |
+| [references/](references/) | 工程检查点、协作约束、证据契约与来源记录 | 方法指向具体参考，或核对来源时 |
+| [evals/](evals/README.md) | 场景输入、观察标准与效果评价说明 | 专门评估协议行为时 |
 
-同一 Task 可经历多个方法；类型由主要交付决定，不随每个工具动作改变。不能判断时先简短重述结果，只有实质歧义才询问。
-
-仅加载选中组及当前方法。例：“修复分页”属于 change，即使先读源码，也不换成 answer；“仅解释分页实现”属于 answer。用户转为只讨论方案时再改交付类型。
-
-clarify 处理关键用户决定，research 处理事实缺口；verify 是完成检查，orchestrate 是协作方式，均可跨组使用。二级索引会给具体触发和路径，不需要再看十项平铺菜单。
-
-Mode 仍是既有 clarify/research/plan/execute/review/learn/orchestrate；design→plan、debug→execute，verify沿用当前主模式，独立验收用review。Task 类型不写进 mode 字段。
-
-操作参考：[workflow](workflow.md)；歧义示例：[routing](examples/routing.md)。项目状态按 [Project Management](../project-management/README.md) 管理；Prompt/参考材料仅在所选方法指向时读取，来源与eval不默认加载。
+方法正文给出核心问题、思想工具、具体动作、示范和停止条件；模板组织执行输入，参考材料补充约束，验收材料用于观察效果。目录更整齐不等于目标模型效果已经通过测试。

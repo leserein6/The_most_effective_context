@@ -8,8 +8,9 @@
 
 | 层次 | 职责 |
 |---|---|
-| [agent.md](agent.md) | 轻量总入口：锚定项目，进入执行与项目管理路由 |
-| [Evidence](evidence/README.md) | 按需加载工作方法；模式是其中的可变部分 |
+| [agent.md](agent.md) | 总入口：锚定 Task/Project，内含一级 Task 路由 |
+| [entry/routes/](entry/routes/) | 入口的二级场景路由，按预期交付选读 |
+| [Evidence](evidence/README.md) | methods / prompts / references / evals，按需读取具体方法与材料 |
 | [Project Management](project-management/README.md) | 跨会话保存目标、进度、决策、知识与流水 |
 | [scripts/pm.py](scripts/pm.py) | 真实文件操作、索引、版本检查与本地恢复 |
 

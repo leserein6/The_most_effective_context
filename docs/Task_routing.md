@@ -4,11 +4,11 @@
 
 每轮Task锚定写在根 agent.md 的第一节：收到新一轮输入就识别本轮预期结果、对象和关键约束；首次用户可见回复以“本轮 Task：…”简短显示。工具回调不新建Task，用户纠正更新目标，Task不独立落盘。
 
-改动前：main 的旧 agent.md 已有明确Task条款；PR版曾将入口偏重Project，Task只在workflow中作为步骤。现在恢复为根入口的明确规则，Project归属与Task结果分开处理。
+Task锚定与一级路由都属于入口职责；Project归属与本轮Task结果分开处理。
 
 ## 实际读取链
 
-AGENTS.md 薄适配 → agent.md 通用规则 → evidence/README.md 一级五类交付 → evidence/routes/对应类型.md 二级场景路由 → 当前方法README → 必要Prompt/参考。
+AGENTS.md 薄适配 → agent.md（通用规则与一级五类交付）→ entry/routes/对应类型.md（二级场景路由）→ evidence/methods/当前方法.md → 必要Prompt/参考。
 
 Project Index与项目状态是另一条数据加载线：每轮按用户要求检查Index，项目操作按需加载管理README。不会因为选了Task类型就新建Project或Task数据库。
 
@@ -18,7 +18,7 @@ clarify/research可跨组解决意图/事实缺口；verify是完成检查；orc
 
 ## 上下文成本与限制
 
-不把十份正文全量注入。已明确方法可直达；已加载且仍适用的静态规则可复用；压缩丢失或版本变化重新读取。三级文件结构不等于实际推理成本必然下降，需观察真实客户端读文件轨迹、错误路由与上下文开销。
+不把十份正文全量注入。已明确方法可直达；已加载且仍适用的静态规则可复用；压缩丢失或版本变化重新读取。分层文件结构不等于实际推理成本必然下降，需观察真实客户端读文件轨迹、错误路由与上下文开销。
 
 ## 设计依据
 

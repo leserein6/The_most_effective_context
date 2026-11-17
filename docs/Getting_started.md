@@ -29,7 +29,7 @@ codebuddy
 
 首次输入：
 
-> 请读取 agent.md、evidence/workflow.md 和 project-management/README.md，遵循其中协议。我想做一个命令行待办工具，请先检查 Index，给出新 Project 的名称、类型和一句话目标，等我确认后创建。
+> 请从 agent.md 开始，按需读取后续协议。我想做一个命令行待办工具，请先检查 Index，给出新 Project 的名称、类型和一句话目标，等我确认后创建。
 
 确认后要求它明确验收条件，实际实现、验证并写回；不要只生成计划。完成本轮后检查项目 state.md、logs/current.md 是否出现实际进度。
 

@@ -37,10 +37,12 @@ flowchart TD
 | 路径 | 内容与加载时机 |
 |---|---|
 | agent.md | 精简强制入口，指引全局协议和独立项目管理 |
-| evidence/workflow.md | 每轮执行流程和按需导航 |
-| evidence/ | 七种模式，各读所需 |
-| evidence/protocols/ | 锚定、恢复、保存、证据、协作、知识、日志、异常 |
-| evidence/prompts/ | 委派、独立审查、压缩模板 |
+| entry/routes/ | 按 Task 交付分组的二级场景路由 |
+| entry/workflow.md、entry/examples.md | 通用流程与路由示例，按需查阅 |
+| evidence/methods/ | 十份思想方法正文，按当前阶段读取 |
+| evidence/prompts/ | 委派、独立审查、压缩等执行模板 |
+| evidence/references/ | 协作约束、证据契约、工程检查点与来源 |
+| evidence/evals/ | 协议行为场景与评价材料 |
 | .codebuddy/agents/ | 官方 Markdown 格式的 worker/reviewer 定义 |
 | project-management/README.md | 独立项目管理操作入口 |
 | project-management/Index.md | 活跃索引，派生生成 |
@@ -81,4 +83,4 @@ token 不覆盖 work 和普通 source 文件，代码并行由所有权/worktree
 
 ## Task与读取入口更新
 
-每轮锚定Task的首要规则在 agent.md；Project归属仍先检查活跃Index。方法读取采用 evidence/README.md（五类预期交付）→ evidence/routes/所选二级索引 → 当前方法正文 → 必要Prompt/参考。详细概念与加载边界见 [Task路由](Task_routing.md)。这些Task类型是临时标签，不新增持久实体，也不写入脚本mode字段。
+每轮锚定Task的首要规则在 agent.md；Project归属仍先检查活跃Index。方法读取采用 agent.md 内的一级路由（五类预期交付）→ entry/routes/所选二级索引 → evidence/methods/当前方法正文 → 必要Prompt/参考。详细概念与加载边界见 [Task路由](Task_routing.md)。这些Task类型是临时标签，不新增持久实体，也不写入脚本mode字段。
