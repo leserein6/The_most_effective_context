@@ -21,7 +21,7 @@
 
 本次是基于来源机制的中文场景化改写，不是直接安装来源 Skill。专用 Skill 工具名、宿主参数、状态存储、用户确认与 Git 权限按当前 workspace 实际能力改写。
 
-工程风险清单、Project 锚定与状态、输出状态枚举和具体默认分支属于本地设计。Learn 协议来自用户教学要求，不用外部仓库为其效果背书。未复制来源完整 Prompt 或脚本；来源许可声明仍以各仓库原文件为准。
+工程风险清单、Project 锚定与状态、输出状态枚举和具体默认分支属于本地设计。Learn 的前置/复习/独立练习边界来自用户要求，示例交替、具体与抽象连接、解释性问题参考 IES 指南；Go例子对应官方语言规范。方法依据不证明目标模型教学效果。未复制来源完整 Prompt 或脚本；来源许可声明仍以各仓库原文件为准。
 
 ## 模型适配假设
 
@@ -30,3 +30,17 @@
 具体设计：一次选当前方法；输入列出实际值与来源；判断写成条件分支；依赖不满足不得抢跑；结果有固定格式；证据绑定产物版本；失败有恢复位置。无需展示私有思维链，不要求模型自己补全缺失业务规则。
 
 所有新规则仍需目标模型场景验证；增加字数本身不代表提高效果。若实测显示多余步骤造成负担，依据失败轨迹精简相应段落。
+
+## 方法知识与索引设计的补充依据
+
+以下与Prompt仓库机制分开：属于方法知识/规范参考，不是当前客户端已安装的Skill。
+
+| ID | 一手/权威资料 | 对应内容与边界 |
+|---|---|---|
+| S13 | [FActScore](https://aclanthology.org/2023.emnlp-main.741/) | Research按原子事实核实；未运行评分器，不推广原论文实验指标 |
+| S14 | [CoVe](https://aclanthology.org/2024.findings-acl.212/) | Research独立验证问题；模型自答不等于外部证据 |
+| S15 | [SEP Abduction](https://plato.stanford.edu/entries/abduction/) | 区分解释性推断与确定证明；具体工程规则是操作化适配 |
+| S16 | [IES学习指南](https://ies.ed.gov/ncee/WWC/PracticeGuide/1) | Learn中的示例/练习交替、抽象具体联系、解释性问题；用户练习偏好优先 |
+| S17 | [Go Calls](https://go.dev/ref/spec#Calls) | Learn的参数绑定例子，不预设用户已经掌握全部语法 |
+| S18 | [Agent Skills规范](https://agentskills.io/specification) | 入口/正文/附属资源渐进加载；Evidence并非原生Skill包 |
+| S19 | [Anthropic上下文工程](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | 按相关性获取上下文；五类Task和两级索引为本地设计，效果待实测 |

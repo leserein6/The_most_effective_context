@@ -86,5 +86,42 @@
       "url": "https://github.com/github/awesome-copilot/blob/main/skills/acquire-codebase-knowledge/SKILL.md",
       "git_blob_sha": "0ef102e7a65fecd906998e2b03f86cc435870a46"
     }
+  ],
+  "method_references": [
+    {
+      "id": "S13",
+      "url": "https://aclanthology.org/2023.emnlp-main.741/",
+      "use": "Research atomic claims"
+    },
+    {
+      "id": "S14",
+      "url": "https://aclanthology.org/2024.findings-acl.212/",
+      "use": "Research independent verification questions"
+    },
+    {
+      "id": "S15",
+      "url": "https://plato.stanford.edu/entries/abduction/",
+      "use": "Explanatory inference versus proof"
+    },
+    {
+      "id": "S16",
+      "url": "https://ies.ed.gov/ncee/WWC/PracticeGuide/1",
+      "use": "Learn worked examples, concrete/abstract connections, explanation"
+    },
+    {
+      "id": "S17",
+      "url": "https://go.dev/ref/spec#Calls",
+      "use": "Go parameter binding example"
+    },
+    {
+      "id": "S18",
+      "url": "https://agentskills.io/specification",
+      "use": "Progressive disclosure"
+    },
+    {
+      "id": "S19",
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "use": "Task-relevant context selection"
+    }
   ]
 }

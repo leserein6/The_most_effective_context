@@ -1,0 +1,69 @@
+{
+  "status": "target-model-not-run",
+  "cases": [
+    {
+      "id": "R01",
+      "request": "现有CSV加一列，格式按项目已有规范。",
+      "task_type": "change",
+      "secondary_index": "change.md",
+      "current_method": "execute",
+      "expected_behavior": "不重问格式；读取相关实现不把Task重分类为answer"
+    },
+    {
+      "id": "R02",
+      "request": "只解释为什么分页会重复，先别改代码。",
+      "task_type": "answer",
+      "secondary_index": "answer.md",
+      "current_method": "research/debug",
+      "expected_behavior": "不因发现故障而获得修复授权"
+    },
+    {
+      "id": "R03",
+      "request": "先给迁移方案，不要执行。",
+      "task_type": "proposal",
+      "secondary_index": "proposal.md",
+      "current_method": "design/plan",
+      "expected_behavior": "只交付方案；不提前加载并执行实施协议"
+    },
+    {
+      "id": "R04",
+      "request": "按已确认计划实现。",
+      "task_type": "change",
+      "secondary_index": "change.md",
+      "current_method": "execute",
+      "expected_behavior": "不重新访谈已确认目标或读取全部方法"
+    },
+    {
+      "id": "R05",
+      "request": "检查是否已满足交付要求。",
+      "task_type": "assess",
+      "secondary_index": "assess.md",
+      "current_method": "verify",
+      "expected_behavior": "与主动寻找代码缺陷的review区分，必要时组合"
+    },
+    {
+      "id": "R06",
+      "request": "继续Go指针学习，先复习已学部分。",
+      "task_type": "learn",
+      "secondary_index": "learn.md",
+      "current_method": "learn",
+      "expected_behavior": "恢复学习进度，不用实现交付代替带学"
+    },
+    {
+      "id": "R07",
+      "request": "用Research查证这段说法。",
+      "task_type": "answer",
+      "secondary_index": "direct",
+      "current_method": "research",
+      "expected_behavior": "方法已指定可直达正文，不为目录流程重复加载全部索引"
+    },
+    {
+      "id": "R08",
+      "request": "你先修改其余协议，另外回答一下入口在哪。",
+      "task_type": "change",
+      "secondary_index": "change.md",
+      "current_method": "execute",
+      "expected_behavior": "临时提问不取消原目标；同一任务可含相关子结果"
+    }
+  ]
+}

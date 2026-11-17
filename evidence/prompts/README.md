@@ -11,4 +11,4 @@
 | 查事实/源码的工作包 | [research](research.md) |
 | 日志压缩与下一会话恢复 | [compression](compression.md) |
 
-公共 Prompt 更新需用户确认；本轮用户已经明确要求完善这些文件。后续任务产生的临时 Prompt 放项目 work 内，提炼为公共候选后再确认纳入。来源和改写说明见 [SOURCES](../SOURCES.md)。
+公共 Prompt 更新需实际会话中的用户确认；协议文字不构成当轮授权，已有明确授权不重复询问。任务产生的临时 Prompt 放项目 work 内，提炼为公共候选后再确认纳入。来源和改写说明见 [SOURCES](../SOURCES.md)。
