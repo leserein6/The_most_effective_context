@@ -17,7 +17,7 @@
 | archived | 暂时不推进，目标未完成 |
 | completed | 目标已经达成 |
 
-每种状态均有 development（开发型）、learning（学习型）、one_off（一次性任务）。一次性任务也是 Project，可持续多轮；一个独立目标对应一个 Project，Task 不独立长期落盘。
+每种状态均有 development（开发型）、learning（学习型）、one_off（一次性任务）。one_off 是短、可在单会话内完成的一次性目标，同一会话内可多轮；需要跨会话延续的目标归 development 或 learning，即使它有明确终点。一个独立目标对应一个 Project，Task 不独立长期落盘。
 状态改变需用户确认；恢复归档或重新开启已完成项目也属于状态改变。创建默认为 active。
 
 ## 操作入口

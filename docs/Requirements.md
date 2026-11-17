@@ -8,7 +8,7 @@
 
 | 项目 | 规则 |
 |---|---|
-| 类型 | development、learning、one_off；一次性任务也属于 Project |
+| 类型 | development、learning、one_off；one_off 为可在单会话内完成的短目标，需要跨会话延续的目标归 development/learning |
 | 组织 | 状态 → 类型 → 具体 Project |
 | active | 当前推进 |
 | archived | 暂时不推进、尚未完成 |
