@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-11-18",
+  "purpose": "按场景选择外部原始Skill/Prompt；只读参考，不自动激活或执行上游工作流。",
+  "update_policy": "按固定commit保留原文与许可证。更新须审查来源、依赖和采用边界并重算哈希；无自动追踪main。",
+  "resources": [
+    {
+      "id": "superpowers-implementer",
+      "title": "Implementer Subagent Prompt Template",
+      "scenarios": [
+        "implement"
+      ],
+      "use_for": [
+        "派发有完整规格、输入和验收的实现子任务",
+        "要求实现、自查、验证记录及结构化回传"
+      ],
+      "avoid_for": "只有讨论/审查授权，或关键接口/验收尚未确定时",
+      "adopt": [
+        "明确任务背景和输入；实现、自查、验证后回传",
+        "采用具体问题升级机制；回传状态使用本地契约，不直接复制其枚举"
+      ],
+      "repository": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "path": "skills/subagent-driven-development/implementer-prompt.md",
+      "git_blob_sha": "5c8ecd61fba036263bf88d0af24d47125780efa0",
+      "sha256": "81dd9d5a3fb0b09b96b5829f03b9796842f3199ef7591d1ba1c2db2a515f64d0",
+      "local_path": "evidence/prompts/external/obra/superpowers/skills/subagent-driven-development/implementer-prompt.md",
+      "license": "MIT",
+      "license_path": "evidence/prompts/external/obra/superpowers/LICENSE",
+      "license_upstream_path": "LICENSE",
+      "license_git_blob_sha": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+      "license_sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "cautions": [
+        "原文明确含 Commit your work 与提交回传；本工作区必须按用户授权覆盖，不得默认 commit/push。",
+        "原文包含 Subagent (general-purpose) 与 model 参数示例，并非 CodeBuddy 已验证的调用语法。",
+        "包含 DONE_WITH_CONCERNS/NEEDS_CONTEXT 等状态，若统一回传枚举需要外层映射，不篡改保存的原文。"
+      ],
+      "upstream_dependencies": [
+        {
+          "kind": "controller_input",
+          "items": [
+            "MODEL (实际可用的模型)",
+            "BRIEF_FILE",
+            "REPORT_FILE",
+            "工作目录与任务背景"
+          ]
+        },
+        {
+          "kind": "upstream_reference",
+          "path": "skills/subagent-driven-development/SKILL.md",
+          "purpose": "原文 Model Selection 引用；未打包成自动执行依赖，外层调用必须提供实际模型"
+        }
+      ],
+      "bundled_files": [],
+      "evaluation_status": "not-run-on-target-model",
+      "content_status": "unmodified-upstream-reference"
+    },
+    {
+      "id": "superpowers-task-reviewer",
+      "title": "Task Reviewer Prompt Template",
+      "scenarios": [
+        "review"
+      ],
+      "use_for": [
+        "对固定任务改动进行独立只读审查",
+        "分需求符合性与代码质量核查实现报告"
+      ],
+      "avoid_for": "审查对象/标准未定，或用户要求实际实施而非评估时",
+      "adopt": [
+        "固定规格、diff与实现报告；独立核对需求和质量",
+        "为具体风险补查有效上下文；缺证据保留未验证，不机械把所有警告判为缺陷"
+      ],
+      "repository": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "path": "skills/subagent-driven-development/task-reviewer-prompt.md",
+      "git_blob_sha": "4cf7860a45d386800fc3eaa6f346210146f3c397",
+      "sha256": "61a04c2fb29907887d8babee1594f5e35ae26d461e7e584f5b7c283215165e08",
+      "local_path": "evidence/prompts/external/obra/superpowers/skills/subagent-driven-development/task-reviewer-prompt.md",
+      "license": "MIT",
+      "license_path": "evidence/prompts/external/obra/superpowers/LICENSE",
+      "license_upstream_path": "LICENSE",
+      "license_git_blob_sha": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+      "license_sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "cautions": [
+        "原文限制重新读取changed files、重跑git和测试；需要在调用说明明确如何处理已有证据缺失或具体交叉调用风险。",
+        "原文警告/noise均当finding、强调test output pristine，不应在本地把任何无害警告机械判为缺陷。",
+        "原文模型参数和brief/diff辅助脚本是上游宿主约定，不能直接当CodeBuddy工具存在。"
+      ],
+      "upstream_dependencies": [
+        {
+          "kind": "controller_input",
+          "items": [
+            "MODEL",
+            "BRIEF_FILE",
+            "GLOBAL_CONSTRAINTS",
+            "REPORT_FILE",
+            "BASE_SHA",
+            "HEAD_SHA",
+            "DIFF_FILE"
+          ]
+        },
+        {
+          "kind": "upstream_helpers",
+          "items": [
+            "skills/subagent-driven-development/scripts/task-brief",
+            "skills/subagent-driven-development/scripts/review-package"
+          ],
+          "purpose": "原文占位符说明引用这些脚本；当前包仅提供原始Prompt，不声称脚本已安装。主Agent须提供等效材料或另行完整安装上游。"
+        }
+      ],
+      "bundled_files": [],
+      "evaluation_status": "not-run-on-target-model",
+      "content_status": "unmodified-upstream-reference"
+    },
+    {
+      "id": "matt-research",
+      "title": "Research",
+      "scenarios": [
+        "research"
+      ],
+      "use_for": [
+        "将查官方文档、源码、规范或API事实委派给研究子Agent",
+        "产出逐项有来源的项目内Markdown研究记录"
+      ],
+      "avoid_for": "无需新查事实，或需要用户做目标取舍时",
+      "adopt": [
+        "优先规范/源码/官方文档，每条结论给出处",
+        "填具体命题、范围和结果路径；由主Agent派发一次，研究者不再次派发"
+      ],
+      "repository": "mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "path": "skills/engineering/research/SKILL.md",
+      "git_blob_sha": "ffc9eb89849cc4cf74962ce93d786ffd17c6a5dc",
+      "sha256": "1f629e18ab899412683bc6a1c4efb4339999e27c2fdac328f26ee10a8c031d33",
+      "local_path": "evidence/prompts/external/mattpocock/skills/skills/engineering/research/SKILL.md",
+      "license": "MIT",
+      "license_path": "evidence/prompts/external/mattpocock/skills/LICENSE",
+      "license_upstream_path": "LICENSE",
+      "license_git_blob_sha": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+      "license_sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "cautions": [
+        "原文要求 background agent/fresh context，宿主没有后台子Agent工具时需显式改用可用方式，不能伪装派发。",
+        "只提供精简调查职责，不包含完整领域查证知识，不能替代本地Research思想方法。"
+      ],
+      "upstream_dependencies": [],
+      "bundled_files": [],
+      "evaluation_status": "not-run-on-target-model",
+      "content_status": "unmodified-upstream-reference"
+    },
+    {
+      "id": "matt-writing-for-agents",
+      "title": "Writing for Agents",
+      "scenarios": [
+        "author"
+      ],
+      "use_for": [
+        "编写或审查AI直接读取的协议、AGENTS.md、Skill及索引入口",
+        "调整渐进加载、上下文指针、步骤完成条件和按需参考结构"
+      ],
+      "avoid_for": "每个常规实现任务；不自动把作者经验当作模型实验结论",
+      "adopt": [
+        "说明引用资料的触发条件，按需加载",
+        "为步骤给可判断的结束条件；同一规则保持一处正文"
+      ],
+      "repository": "mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "path": "skills/productivity/writing-for-agents/SKILL.md",
+      "git_blob_sha": "a37608daf6e835e767deecfb498facecaaba82ba",
+      "sha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
+      "local_path": "evidence/prompts/external/mattpocock/skills/skills/productivity/writing-for-agents/SKILL.md",
+      "license": "MIT",
+      "license_path": "evidence/prompts/external/mattpocock/skills/LICENSE",
+      "license_upstream_path": "LICENSE",
+      "license_git_blob_sha": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+      "license_sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "cautions": [
+        "SKILL-MECHANICS.md涉及Skill frontmatter与调用机制，不能假设各种CLI完全相同。",
+        "原文包含作者关于leading words/negation等Prompt行为的主张，应作为待验证经验，不直接转述为目标模型已证实效果。",
+        "正文较长，不应自动注入所有实现子任务；仅在写协议/Prompt时按需选择。"
+      ],
+      "upstream_dependencies": [
+        {
+          "kind": "relative_reference",
+          "path": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+          "when": "文档是Skill时，原文要求读取"
+        }
+      ],
+      "bundled_files": [
+        {
+          "path": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+          "local_path": "evidence/prompts/external/mattpocock/skills/skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+          "sha256": "c768e6307c7c10728c401c213f2c4ba71c542127eeb7ad2956aabd15a0fa0059",
+          "git_blob_sha": "9cdbdb22aadc438755392216e75ad9a14cc9832e"
+        }
+      ],
+      "evaluation_status": "not-run-on-target-model",
+      "content_status": "unmodified-upstream-reference"
+    },
+    {
+      "id": "copilot-acquire-codebase-knowledge",
+      "title": "Acquire Codebase Knowledge",
+      "scenarios": [
+        "research"
+      ],
+      "use_for": [
+        "显式全仓/重点领域架构调查或新成员代码库理解",
+        "生成有源码依据的技术栈、结构、架构、规范、集成、测试、风险文档"
+      ],
+      "avoid_for": "窄问题/普通修复；用户未要求代码库级调查时",
+      "adopt": [
+        "显式代码库级调查时检查意图、实现、未知与证据",
+        "完整模板/脚本原样随包保留；执行前检查脚本与真实环境，不自动运行"
+      ],
+      "repository": "github/awesome-copilot",
+      "commit": "a06ba06d11f41b996f8c246e2a452e1bf3a17950",
+      "path": "skills/acquire-codebase-knowledge/SKILL.md",
+      "git_blob_sha": "0ef102e7a65fecd906998e2b03f86cc435870a46",
+      "sha256": "a86527533d2ee4df27063af24402b9e1a345c33bba3cf423c96da7cdb3864a60",
+      "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/SKILL.md",
+      "license": "MIT",
+      "license_path": "evidence/prompts/external/github/awesome-copilot/LICENSE",
+      "license_upstream_path": "LICENSE",
+      "license_git_blob_sha": "89bc5e962c9944cdb050887062afdaaf89be504a",
+      "license_sha256": "e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823",
+      "cautions": [
+        "原文强制先scan.py并最终建立/验证七份文档；不适合每个窄代码问题、普通修复或小改动。",
+        "focus-area模式仍要求保留所有七份文档结构，使用者必须明确接受该输出契约。",
+        "原文使用SKILL_ROOT、shell调用及扫描脚本；必须有实际目录和运行环境，不可声称已安装。"
+      ],
+      "upstream_dependencies": [
+        {
+          "kind": "runtime",
+          "items": [
+            "Python 3.8+",
+            "git",
+            "SKILL_ROOT或实际Skill目录路径"
+          ]
+        },
+        {
+          "kind": "relative_reference",
+          "paths": [
+            "skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md",
+            "skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md",
+            "skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md",
+            "skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md",
+            "skills/acquire-codebase-knowledge/assets/templates/STACK.md",
+            "skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md",
+            "skills/acquire-codebase-knowledge/assets/templates/TESTING.md",
+            "skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md",
+            "skills/acquire-codebase-knowledge/references/stack-detection.md",
+            "skills/acquire-codebase-knowledge/scripts/scan.py"
+          ],
+          "purpose": "相对引用脚本、调查问题与七份模板；应保持完整子目录"
+        }
+      ],
+      "bundled_files": [
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md",
+          "sha256": "3b7a958d153c037a6fc19e35e7e9792650d747491340d83ba831714b6ca02b6c",
+          "git_blob_sha": "26f575e2bb0599b9a66741b08e767104c038d833"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md",
+          "sha256": "d714bef20a5ed8fee1ab5e01041abd18f1d95b93d455e82b371031a6675b6430",
+          "git_blob_sha": "d41e13ab33523fefa5fb00c2081cd5993cd45af5"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md",
+          "sha256": "c20c1dca3226992b785229b4ba2c08caada775bd0e26a85f1185d0600b6f2a37",
+          "git_blob_sha": "5a29453cfec3f826b2f39d9ec2759b152f0495ba"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md",
+          "sha256": "60930c9b9aecf63e9c1c19a597bfaba6cab5f44d687e2c751cf034ffe962af25",
+          "git_blob_sha": "f62039ff89558888142bedb7332920f3ba765a9e"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/STACK.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/STACK.md",
+          "sha256": "0faf167cb857c14f4f8fbdbebf58727440d80c275fa483dedd7a08e2ac3ebe12",
+          "git_blob_sha": "2520677c373a2c6c8f998f8978097071591dff41"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md",
+          "sha256": "29a5a387c894135c41c74a1b3e629ece88707c0a56aa9e4153ec9682f5c0c373",
+          "git_blob_sha": "89e9c28f8c2601ea34f33d12bfbc7a2ce2a72427"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/assets/templates/TESTING.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/assets/templates/TESTING.md",
+          "sha256": "941a0f400441660a5fb9a28f43318f4a13f1a1c79e8cfac03cdf893cd6c3db85",
+          "git_blob_sha": "8e0e7028e67c52b35d394dc76dbfe425b8fcc132"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md",
+          "sha256": "d06d9de9b30ebfe73a8f1034bfc1f2c4b68e45bd8425d56df8e4d48f06673dce",
+          "git_blob_sha": "02430e76f5fd9a340562f1b29c252ebd93dddd3e"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/references/stack-detection.md",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/references/stack-detection.md",
+          "sha256": "9baaaaadbebdfd53099875a9f4920d2fcb236efe040655a2d43217a6a31a4c9f",
+          "git_blob_sha": "01ccfd7db7c38d6b7b7eeab9317230d938e1f894"
+        },
+        {
+          "path": "skills/acquire-codebase-knowledge/scripts/scan.py",
+          "local_path": "evidence/prompts/external/github/awesome-copilot/skills/acquire-codebase-knowledge/scripts/scan.py",
+          "sha256": "193d5b9f73a71d6ecc2f39f13f33d96be49d675abe83f5857ddbdc4ae21b7bd9",
+          "git_blob_sha": "15e17a28b812ff414469a7bc7a3181c90f848ce8"
+        }
+      ],
+      "evaluation_status": "not-run-on-target-model",
+      "content_status": "unmodified-upstream-reference"
+    }
+  ]
+}

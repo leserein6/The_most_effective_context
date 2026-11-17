@@ -94,3 +94,11 @@ OK
 ```
 
 全体 Markdown 本地链接检查通过。没有在仓库中创建真实用户 Project；示例仅在临时目录中运行。
+
+## 2026-11-18：外部 Prompt 库与协议收拢
+
+运行 `python3 -m unittest discover -s tests -v`：29 项通过（原有 19 项 + Prompt 库 10 项）。新增覆盖场景筛选、未知 ID/场景/无匹配、只读输出、正文/依赖/许可篡改、Git blob 校验、路径越界与符号链接拒绝、重复 ID 与 schema 拒绝；未执行外部脚本或调用目标模型。
+
+`python3 scripts/prompt_library.py check`：5 份原始资源、11 份相对依赖及 3 份 MIT 许可证校验通过；正文对应固定上游 Git blob，许可保留原文。`list --scenario implement` 返回实现者资源，未展开其他正文。另已从固定上游 commit 重新读取 5 份主正文和 3 份许可，blob 与收录记录一致。
+
+本地 Markdown 链接与围栏检查通过；删除的 6 份重复文件无失效链接。7 份未涉及协作接线的方法正文、最近加入的 HARD GATE、one_off 分类规则、pm.py/install.py 和空用户 Index 均保持不变。静态与脚本结果不能推导目标 DeepSeek 模型效果；原生 CodeBuddy 加载、实际委派与行为遵守仍待实测。

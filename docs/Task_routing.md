@@ -8,13 +8,17 @@ Task锚定与一级路由都属于入口职责；Project归属与本轮Task结�
 
 ## 实际读取链
 
-AGENTS.md 薄适配 → agent.md（通用规则与一级五类交付）→ entry/routes/对应类型.md（二级场景路由）→ evidence/methods/当前方法.md → 必要Prompt/参考。
+AGENTS.md 薄适配 → agent.md（通用规则与一级五类交付）→ entry/routes/对应类型.md（二级场景路由）→ evidence/methods/当前方法.md → 必要Prompt/参考。委派额外进入 [Prompt 库](../evidence/prompts/README.md) 的场景索引，选一份外部原文，再填共用工作包；子 Agent 只读工作包指向的当前方法。
 
 Project Index与项目状态是另一条数据加载线：每轮按用户要求检查Index，项目操作按需加载管理README。不会因为选了Task类型就新建Project或Task数据库。
 
 一级类型：answer（理解/调查）、proposal（方案）、change（实际改动）、assess（评估）、learn（学习）。这是本仓库的工程设计，按交付结果而非动作分类；改功能时读源码不意味着Task变调查，用户改交付目标才重分类。
 
 clarify/research可跨组解决意图/事实缺口；verify是完成检查；orchestrate是协作方式。两级索引只描述触发与去向，不复制正文，不强制一个Task把所有协议串行走完。
+
+## Project、Task 与 Mode
+
+Project 是跨交互保存的目标，Task 是本轮预期结果，Task 类型是入口临时标签，Mode 是当前工作方式；不能互相替代。checkpoint 的模式映射由根入口规定。Project 的恢复与写入动作只按管理协议执行，方法正文不重写它们。完整职责与删并记录见 [协议边界](Protocol_boundaries.md)。
 
 ## 上下文成本与限制
 

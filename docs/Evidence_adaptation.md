@@ -13,7 +13,7 @@
 
 ## 来源与自定义边界
 
-逐文件来源/采用与舍弃机制见 [SOURCES](../evidence/references/sources.md)，读取版本记录在 sources.json。已重新读取 Matt Pocock、Superpowers、Anthropic 和 Awesome Copilot 的具体文件，未将泛化研究列表作为完成依据。
+方法改写来源/采用与舍弃机制见 [SOURCES](../evidence/references/sources.md)，历史读取版本记录在 sources.json。外部原文资源库及固定 commit/许可另见 [Prompt 库](../evidence/prompts/README.md)，不再只有来源清单。已重新读取 Matt Pocock、Superpowers、Anthropic 和 Awesome Copilot 的具体文件，未将泛化研究列表作为完成依据。
 
 模型适配基于用户实际反馈，不是关于 DeepSeek 性能的公开测试结论。协议不要求私有思维链；要求的是可观察事实、选择、操作与证据。Learn 和后端清单含明确的用户场景适配，不伪装成第三方已验证方案。
 

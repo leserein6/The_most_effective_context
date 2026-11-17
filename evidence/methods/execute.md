@@ -60,6 +60,6 @@
 
 逐项对照改变项、保持项和实际差异：是否漏做、越界、修改了用户原有成果，或产生未验证副作用？交给 [Verify](verify.md) 限定完成声明。
 
-回传实际改动与位置、有效验证结果、未完成/未验证项。主 Agent 按项目维护协议保存状态和流水；子 Agent 按 [实现 Prompt](../prompts/implementer.md) 回传，不写共享项目状态，不自行派生审查 Agent。不自动 commit/push。
+按 [回传契约](../references/evidence-contract.md) 给出实际改动与位置、有效验证结果和限制。主 Agent 按 [每轮保存](../../project-management/protocols/maintain.md) 写状态和流水；被派发的子 Agent 只回传，不写共享项目状态、不自行派生审查 Agent、不自动 commit/push。
 
 方法依据：S06 的分步执行与记录、S09 的实现/自查/回传契约见 [来源](../references/sources.md)。不变量、改动影响和示例是本工作区的工程适配，未验证目标 DeepSeek 模型效果。

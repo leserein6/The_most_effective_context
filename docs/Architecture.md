@@ -38,10 +38,10 @@ flowchart TD
 |---|---|
 | agent.md | 精简强制入口，指引全局协议和独立项目管理 |
 | entry/routes/ | 按 Task 交付分组的二级场景路由 |
-| entry/workflow.md、entry/examples.md | 通用流程与路由示例，按需查阅 |
+| entry/examples.md | 路由歧义示例，按需查阅 |
 | evidence/methods/ | 十份思想方法正文，按当前阶段读取 |
-| evidence/prompts/ | 委派、独立审查、压缩等执行模板 |
-| evidence/references/ | 协作约束、证据契约、工程检查点与来源 |
+| evidence/prompts/ | 共用委派/计划格式、按场景检索的外部原始资源库 |
+| evidence/references/ | 回传证据契约、工程检查点与方法来源 |
 | evidence/evals/ | 协议行为场景与评价材料 |
 | .codebuddy/agents/ | 官方 Markdown 格式的 worker/reviewer 定义 |
 | project-management/README.md | 独立项目管理操作入口 |

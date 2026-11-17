@@ -20,6 +20,8 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 - [总体设计](docs/Architecture.md)
 - [每轮Task与二级方法索引](docs/Task_routing.md)
+- [外部 Skill / Prompt 资源库](evidence/prompts/README.md)
+- [协议职责与去重](docs/Protocol_boundaries.md)
 - [已确认需求](docs/Requirements.md)
 - [安装与使用](docs/Getting_started.md)
 - [验收清单](docs/Acceptance.md)与[实际测试结果](docs/Test_results.md)

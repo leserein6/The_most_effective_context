@@ -57,3 +57,13 @@ confirmed 决策的 user_evidence 是调用者提供的依据，脚本不能识�
 Project ID 全局唯一、稳定；状态目录迁移不改 ID。managed 路径不支持符号链接。外部源码仓库可在 work/README.md 登记绝对路径或仓库地址，不要靠符号链接接入。
 
 脚本当前不提供 Project 类型重分类命令；创建时确认类型。若日后确需改类，先设计显式迁移与回归验证，不直接改目录与元数据使之失配。
+
+## 外部 Prompt 资源（只读）
+
+```bash
+python3 scripts/prompt_library.py list --scenario implement
+python3 scripts/prompt_library.py show superpowers-implementer
+python3 scripts/prompt_library.py check
+```
+
+场景为 implement/review/research/author。list 只读元数据；show 校验正文、相对依赖及许可后显示选中原文和采用注意；check 校验全库。支持 `--root` 指定安装根目录，不依赖运行时网络。未知 ID、无匹配和哈希/路径异常返回非零。命令不执行上游脚本，不安装原生 Skill，也不代替主 Agent 填写授权与验收。
