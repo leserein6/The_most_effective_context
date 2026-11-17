@@ -1,36 +1,25 @@
-# Project Schema · 字段索引
+# Project Schema · V1 文件映射
 
-**加载条件**：要创建、校验或修改 `project.yaml` 时阅读；仅恢复项目摘要时通常可直接查看实例，不必读全字段契约。
+仅在创建、编辑定义或校验实例时加载；普通恢复用 resume 即可。
 
-## Canonical shape (V0)
+当前实例路径：`project-management/projects/<status>/<type>/<id>/`。不再使用 V0.2 YAML 实例作为运行时数据。三种 status 是 active/archived/completed；没有独立 paused，归档即未完成但暂停推进。
 
-```text
-schema_version
-id, name
-intent: problem, desired_outcome, success_signals
-scope: in, out
-deliverables, constraints
-state: phase, summary, verified_outputs, next_action, blockers, updated_at
-references: decisions, journal, evidence
-```
-
-实例遵守 [模板](../templates/project.yaml)。字段命名应一致；不额外增设未经定义的“同义字段”。
-
-## 字段规范按需加载
-
-| 操作影响 | 读取 | 规范内容 |
-| --- | --- | --- |
-| 新建、改名、修改项目意图、交付物、范围 | [definition.md](definition.md) | **Definition / Extraction / Update / Constraints** |
-| 更新阶段、进度、成果证据、阻塞、下一步、文件引用 | [progress.md](progress.md) | **Definition / Extraction / Update / Constraints** |
-| 提取项目意图困难或需要变更对照案例 | [intent.md](../examples/intent.md) | 输入→判断→正确/错误示例 |
-| 判断是否形成经过验证的进展 | [progress.md Few-shot](../examples/progress.md) | 进度更新/未验证/中断案例 |
+| 文件 | 当前职责 | V0.2 对应概念 |
+|---|---|---|
+| project.md | 首个 JSON 代码块保存 schema_version、id、name、type、summary、status、revision、created_at、updated_at | Identity 与简短目标/生命周期 |
+| definition.md | 问题、期望结果、范围、交付物、硬约束；未知显式待定 | intent / scope / deliverables / constraints |
+| acceptance.md | 可观察验收条件 | intent.success_signals |
+| state.md | 真实进度、未解决问题、下一步；建议须标建议 | state.summary / next_action / blockers |
+| decisions.md | proposed/confirmed/superseded 与真实用户依据 | references.decisions |
+| logs/current.md | 操作流水、验证证据、结果与限制 | references.journal / verified_outputs |
+| logs/summary.md 与 archive/ | 可恢复摘要、完整原文与哈希 | 历史引用 |
+| source/INDEX.md | 可定位资料、版本、用途 | references.evidence |
+| notes.md / knowledge-candidates.md | 项目知识 / 公共积累候选 | 新增分离职责 |
 
 ## 不变量
 
-1. `schema_version` 用于辨识数据结构；不允许用未知字段静默替换已有字段。
-2. `id` 是稳定且唯一的项目标识。 `name` 是面向用户、可修改的标题。
-3. **只有正式确认之后的 Project 才有正式持久化实例**；创建前草案在会话中呈现，不写入 `projects/`。
-4. `state.phase` 只包含 `active | paused | completed | archived`。未确认草案不使用正式 `phase: draft` 实例伪装已创建。
-5. **未知与否定不同**：未知内容使用 `null` 或明确标注待定；不能把不存在的事实填成空列表而暗示用户明确排除。
-6. 在 Project 实例中保存**当前快照与引用**，不要复制完整聊天、所有操作过程或整套协议。
-7. 所有链接/证据路径写入前应确认实际存在；路径引用只是定位方式，不代表已验证其内容。
+稳定 ID 全局唯一，名称可修改。Index/History 由 project.md 派生；修改名称或一句话目标用 describe，更新长定义与验收用 edit。所有共享状态写入需 expected token，冲突重读比较合并。
+
+正式创建需用户确认；未知不等于否定；建议不等于确认；写了文件不等于通过验证；完成本轮不等于项目完成。引用不是真实性证明，需要时回查实际内容。
+
+调用接口见 [CLI](../../docs/CLI.md)，字段提取见 [Definition](definition.md)，进度判断见 [Progress](progress.md)。旧 YAML 模板仅历史参考，旧示例中的字段名按本表理解。

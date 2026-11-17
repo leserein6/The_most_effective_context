@@ -1,27 +1,38 @@
-# Project Management · 项目管理
+# Project Management
 
-项目管理，主要解决跨会话上下文丢失、需求解决无法沉淀闭环等问题，提供项目管理
+职责：保存独立目标的长期事实、进度、决策、知识和操作记录。与全局任务执行机制独立。
 
-项目分为几类
-0.开发型 _ 针对特定的需求，进行代码开发
-1.学习型 _ 用户的学习需求
-3.一次性任务 _ 临时的一次性任务。
+## 导航
 
-| 操作 | 加载 | 按需资源 |
-| --- | --- | --- |
-| 创建长期项目 | [Create](protocols/create.md) | 核心字段定义、实例模板、必要时 Clarify |
-| 修改项目定义/状态 | [Maintain](protocols/maintain.md) | 当前实例、受影响字段规范、必要时 Few-shot |
-| 恢复已有项目 | [Resume](protocols/resume.md) | 当前快照 → 必要决策和证明材料 |
+- `Index.md`：仅活跃项目；包含 ID、类型、名称、一句话目标，首要检查入口。
+- `History.md`：归档/已完成项目，用户明确提及或活跃索引无匹配时按需检查。
+- `projects/<status>/<type>/<id>/`：权威项目数据。
+- `conventions/README.md`：用户确认后的跨项目积累。
 
-## 单一事实源
+## 状态与类型
 
-- [Schema 总索引](schema/project.md)
-- [项目定义字段](schema/definition.md)
-- [项目进度字段](schema/progress.md)
-- [Project 实例模板](templates/project.yaml)
-- [意图与变更示例](examples/intent.md)
-- [进度更新示例](examples/progress.md)
+| 状态 | 含义 |
+|---|---|
+| active | 当前推进 |
+| archived | 暂时不推进，目标未完成 |
+| completed | 目标已经达成 |
 
-正式实例约定为 `projects/<id>/project.yaml`，文件不存在不能声称已创建。正式创建之前，应先让用户看到具体草案并**明确确认**；修改核心方向和关键约束同样需要确认。
+每种状态均有 development（开发型）、learning（学习型）、one_off（一次性任务）。一次性任务也是 Project，可持续多轮；一个独立目标对应一个 Project，Task 不独立长期落盘。
+状态改变需用户确认；恢复归档或重新开启已完成项目也属于状态改变。创建默认为 active。
 
-不要因进入 Project Management 就加载所有项目 Schema、Few-shot 和操作历史，也不要每轮自动创建 Task 记录。
+## 操作入口
+
+| 操作 | 读取的协议 |
+|---|---|
+| 检查归属 | [Routing](protocols/routing.md) |
+| 新建与确认 | [Create](protocols/create.md)，再按需读取 Schema |
+| 接续与上下文恢复 | `protocols/resume.md` |
+| 每轮保存 | `protocols/maintain.md` |
+| 归档/完成/恢复 | `protocols/lifecycle.md` |
+| 日志压缩 | `protocols/logging.md` |
+| 公共积累 | `protocols/knowledge.md` |
+| 冲突/中断 | `protocols/recovery.md` |
+
+元数据在 project.md 的首个 JSON 代码块中，正文仍可直接阅读。Index/History 是派生视图，禁止手工维护，调用脚本刷新。
+
+字段职责与旧版本映射见 [Schema](schema/project.md)。长期问题、范围、交付与硬约束放 definition.md；验收标准放 acceptance.md。

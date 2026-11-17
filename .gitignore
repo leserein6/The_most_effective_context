@@ -1,0 +1,9 @@
+# 本地运行时、临时 payload、进程回滚日志
+.pm-runtime/
+__pycache__/
+*.pyc
+.DS_Store
+.codebuddy/settings.local.json
+.env
+.env.*
+!.env.example

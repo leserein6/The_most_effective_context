@@ -1,3 +1,5 @@
+# HISTORICAL V0.2 REFERENCE ONLY. Do not create current instances from this template.
+# Current schema: ../schema/project.md; runtime uses Markdown project.md and companion documents.
 # V0 Project 实例模板；正式实例位于仓库根 projects/<id>/project.yaml
 # 创建前必须展示草案并获得明确确认。
 # 字段含义以 project-management/schema/ 中的契约为准。

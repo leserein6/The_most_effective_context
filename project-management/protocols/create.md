@@ -1,13 +1,12 @@
-# Project Create · 长期项目创建
+# Project Create
 
-**When**：用户要求将长期工作建立为可跨 Session 维护的 Project。讨论想法并不自动产生创建授权。
+先读活跃 [Index](../Index.md)，依 [归属协议](routing.md) 判断接续或新建；信息不足必须询问。
 
-1. **明确项目身份和目的**：从已有用户输入提炼问题、期望结果、边界和核心约束；需要填写字段时读取 [Definition](../schema/definition.md)。
-2. **判断是否存在关键缺口**：未明确的信息若会改变项目方向或验收，应按需调用 [Evidence: Clarify](../../evidence/clarify/README.md)，每轮优先解决一个关键问题；无关细节可留待后续。
-3. **展示可编辑草案**：包含名称、所解决的问题、期望结果、范围、主要交付、约束、待定项和建议下一步。提取有歧义时按需读 [Few-shot](../examples/intent.md)。
-4. **取得对具体草案的确认**：用户最初说“创建 Project”不等于对 Agent 自行补出的草案认可；需确认之后再正式写入。
-5. **写入正式实例**：读取 [Schema](../schema/project.md) 和 [模板](../templates/project.yaml)，检查 ID 无冲突，保存到 `projects/<id>/project.yaml`，不得用杜撰内容填满未知字段。
-6. **实际检查后反馈**：重新读取文件，对照确认草案检查关键字段；写入不成功必须说明，不能假装 Project 创建完成。
+1. 从用户输入提炼名称、development/learning/one_off、一句话目标；一个独立目标对应一个 Project，一次性目标也可持续多轮。
+2. 关键歧义才澄清，用户希望一次问完时集中列出；普通实现细节自行判断。按需读 [定义维护契约](../schema/definition.md)。
+3. 展示具体草案，用户确认后才 create --confirmed。已明确给出全部字段并要求创建，不重复确认。
+4. 脚本保存 Markdown 实例到 `project-management/projects/active/<type>/<id>/`，同时更新 Index。元数据结构见 [Schema](../schema/project.md)。
+5. 先明确 definition.md 中的问题、结果、边界、交付、硬约束，以及 acceptance.md 的验收条件；未知可保留待定，不编造。
+6. 实际检查创建结果；失败不得声称成功。本轮之后仍遵循 [每轮保存](maintain.md)。
 
-**停止条件**：关键授权不明、项目 ID 冲突、目标不可写。  
-**完成条件**：用户确认的项目定义与可读取的正式实例一致；不是“已经生成 YAML 文本”。
+没有自动导入旧 `projects/<id>/project.yaml`。旧实例若存在，按 [迁移说明](../../docs/Migration.md) 显式处理，不重建覆盖。

@@ -1,26 +1,15 @@
-# Project Progress · 状态字段维护契约
+# Project Progress · 进度维护契约
 
-**适用**：已有项目的进度刷新、恢复、阻塞、证据与资源引用。长期意图的修改见 [definition.md](definition.md)。
+| 位置 | 提取依据 | 不能怎样更新 |
+|---|---|---|
+| status | 用户已确认的活跃/归档/完成决定 | 不因长时间无操作自动归档，不因单轮完成自动 completed |
+| state.md 进度 | 已实际产生的产物、检查及剩余工作 | 不能把讨论或未验证实现写成验证完成 |
+| state.md 下一步 | 用户优先级、依赖或 Agent 建议 | 建议要明确标为建议，不能冒称用户决定 |
+| state.md 未解决问题 | 真实阻塞、待确认项与未验证部分 | 不把猜测写成确定故障 |
+| decisions.md | proposed / confirmed / superseded，带真实依据 | 不覆盖旧决定的来由；冲突先指出 |
+| logs/current.md evidence | observed / cited / inferred / unverified，带出处 | 不编造命令输出或把引用当作验证 |
+| updated_at / revision | 脚本成功写入时生成 | 不凭空预填未来时间 |
 
-| 字段 | Definition（是什么） | Extraction（根据什么判断） | Update（何时更新）与 Constraints（禁忌） |
-| --- | --- | --- | --- |
-| `state.phase` | 生命周期阶段 `active/paused/completed/archived` | 用户指令 + 真实交付状态 | 未验收不能仅凭 Agent 宣称标 `completed`；停滞不自动算 paused |
-| `state.summary` | 简洁、可信的目前情况 | 最近可确认的产物/决策与未完成点 | 只记录已知事实，保留限制；不复述完整会话 |
-| `state.verified_outputs` | 已核实成果及其证明 | 文件存在检查、测试结果、提交/工具返回及必要人工核验 | 每项带 `description` 和 `evidence`；无证据的不列为 verified |
-| `state.next_action` | 恢复时最合适的下一步，含来源性质 | 当前阻塞、用户优先级和依赖 | `status` 为 `confirmed/proposed`；AI 建议不能标 `confirmed` |
-| `state.blockers` | 阻止下一步的真实依赖/问题 | 工具失败、资源缺失、待确认关键事项 | 已消除的阻塞及时更新；不可把猜测障碍写为确定事实 |
-| `state.updated_at` | 当前快照最后实际维护时间 | 成功写入时可靠获得的 ISO 8601 时间 | 不能凭空编造时间；取不到就保持 `null` |
-| `references.decisions` | 可检索的重大决策文档位置 | 已存在的项目内决策文件 | 路径必须可解析；记录重大决策须保留来由 |
-| `references.journal` | 详细工作过程的可选日志位置 | 已存在的 Project 日志 | 当前 Demo 不强制每轮记录原始聊天；不因 Task 临时而保存 Task 实体 |
-| `references.evidence` | 其他证据与资料的定位信息 | 实际文件/链接/提交编号 | 引用不等于内容真实性；必要时重新核实 |
+每轮结束前由主 Agent 调用 checkpoint 一次保存；Subagent 返回结果，不写共享状态。与其他会话冲突时读取最新版本、比较并合并，不只换 token 强行写。状态变更独立调用 status 并具备用户确认。
 
-## 维护分类
-
-- **已验证进展** → 更新 `summary`、`verified_outputs`、`next_action`，保留依据。
-- **已确认的新决策** → 更新相关字段并记录决策出处；重大定义变化应先经过用户确认。
-- **仅讨论或 AI 建议** → 不当成已落实结果；下一步可标为 `proposed`，或暂不写。
-- **执行失败/中断** → 写真实阻塞与部分结果，不伪造全部成功。
-
-对更新判断有歧义时读取 [Few-shot：progress](../examples/progress.md)；普通状态读取不必加载示例。
-
-注意：跨 Session 恢复首先依赖当前快照，但若快照显示“已完成”而实际文件已不存在，应以核验结果修正判断，而不是盲信摘要。
+快照与实际证据不符时说明限制，回查现状后修正。当前数据契约见 [Schema](project.md)，实际步骤见 [Maintain](../protocols/maintain.md)。
