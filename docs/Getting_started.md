@@ -2,7 +2,7 @@
 
 ## 1. 环境检查
 
-按 [README 的用户拉取命令](../README.md#在-mac-上使用) 获取工作树，再在 The_most_effective_context 目录检查环境。
+本文件仅属于 **Harness 源码仓库的安装说明**，默认不进入用户 Workspace。先按 [README 的安装说明](../README.md#在-mac-上使用) 获取源码、安装到独立目标目录，再在目标目录日常使用；源码目录只供安装、升级和维护。
 
 ```bash
 python3 --version
@@ -21,13 +21,16 @@ doctor 检查项目目录、索引和归档完整性。
 
 ## 3. 启动 CodeBuddy
 
+**进入安装后的目标工作区**（全新独立 Workspace 或已有业务仓库），不要把源码仓库当成日常工作区：
+
 ```bash
+cd /绝对路径/用户工作区
 codebuddy
 ```
 
 首次输入：
 
-> 请从 agent.md 开始，按需读取后续协议。我想做一个命令行待办工具，请先检查 Index，给出新 Project 的名称、类型和一句话目标，等我确认后创建。
+> 请从当前工作区的 Harness 入口开始，按需读取后续协议。我想做一个命令行待办工具，请先检查 Index，给出新 Project 的名称、类型和一句话目标，等我确认后创建。
 
 确认后要求它明确验收条件，实际实现、验证并写回；不要只生成计划。完成本轮后检查项目 state.md、logs/current.md 是否出现实际进度。
 
@@ -47,7 +50,7 @@ codebuddy
 
 ## 6. 发行安装（可选）
 
-安装器从固定 `install-manifest.json` 的明确文件列表复制，**不会复制源项目已有 Project、日志、`.env`、维护者测试或原 `.gitignore`**，默认只预览。
+安装器从源码仓库的 `install-manifest.json` 白名单复制运行文件，**不会复制整个 `docs/`、根 `README.md`、一次性安装器/安装清单、维护者测试、源项目已有 Project、日志、`.env` 或原 `.gitignore`**，默认只预览。安装后 `scripts/pm.py` 等运行脚本和执行协议仍需保留；安装说明只在源码仓库中，需要升级时再使用。
 
 **装到已有业务仓库**（推荐，`--mode project` 默认值）：
 
