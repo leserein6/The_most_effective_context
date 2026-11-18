@@ -16,7 +16,7 @@ import tempfile
 MANIFEST = 'install-manifest.json'
 START = '\n<!-- project-harness:start -->\n'
 END = '\n<!-- project-harness:end -->\n'
-ENTRY = START + 'Project/Task/Mode 管理入口：@.codebuddy/harness/agent.md\n' + END
+ENTRY_CHOICES = ('codebuddy', 'agents', 'both', 'none')
 RUNTIME_IGNORE = '.pm-runtime/\n__pycache__/\n*.pyc\n'
 INDEX_HEADER = {
     'Index.md': '# 活跃 Project 索引',
@@ -40,11 +40,11 @@ def load_manifest(source):
         if raw in result:
             raise ValueError('Duplicate manifest path: ' + raw)
         result.append(raw)
-    required = {'agent.md', 'AGENTS.md', 'CODEBUDDY.md', 'scripts/pm.py', 'evidence/README.md', 'project-management/README.md'}
+    required = {'agent.md', 'scripts/pm.py', 'evidence/README.md', 'project-management/README.md'}
     if not required.issubset(result):
         raise ValueError('Manifest is missing required Harness files')
-    if any(x.startswith(('docs/', 'tests/', 'evidence/evals/', 'project-management/projects/', 'examples/')) or x in ('.gitignore', '.env', 'README.md', 'scripts/install.py', MANIFEST) for x in result):
-        raise ValueError('Manifest includes maintainer-only or installation-only content')
+    if any(x.startswith(('docs/', 'tests/', 'evidence/evals/', 'project-management/projects/', 'examples/')) or x in ('.gitignore', '.env', 'README.md', 'AGENTS.md', 'CODEBUDDY.md', 'scripts/install.py', MANIFEST) for x in result):
+        raise ValueError('Manifest includes maintainer-only, installation-only, or generated entry content')
     return result
 
 
@@ -81,7 +81,23 @@ def adapt_markdown_links(rel, data, target):
     return re.sub(r'\]\(([^)#]+)(#[^)]*)?\)', rewrite, text).encode('utf-8')
 
 
-def plan_install(source, target, mode, merge_entry):
+def entry_specs(mode):
+    if mode == 'workspace':
+        return {
+            'codebuddy': ('CODEBUDDY.md', '@agent.md'),
+            'agents': ('AGENTS.md', '先读取 agent.md。'),
+        }
+    return {
+        'codebuddy': ('CODEBUDDY.md', '@.codebuddy/harness/agent.md'),
+        'agents': ('AGENTS.md', '先读取 .codebuddy/harness/agent.md。'),
+    }
+
+
+def entry_block(pointer):
+    return (START + 'Project/Task/Mode 管理入口：' + pointer + '\n' + END).encode('utf-8')
+
+
+def plan_install(source, target, mode, merge_entry, entry):
     paths = load_manifest(source)
     if source == target or source in target.parents or target in source.parents:
         raise ValueError('Source and target must be separate directory trees')
@@ -92,13 +108,12 @@ def plan_install(source, target, mode, merge_entry):
 
     plan = []
     conflicts = []
+    entry_merges = set()
     for rel in paths:
         src = source / rel
         ensure_safe(src, source)
         if not src.is_file():
             raise ValueError('Missing manifest source: ' + rel)
-        if mode == 'project' and rel in ('AGENTS.md', 'CODEBUDDY.md'):
-            continue
         if mode == 'project' and rel.startswith(('.codebuddy/agents/', '.codebuddy/skills/')):
             dest = target / rel
         elif mode == 'project':
@@ -111,29 +126,38 @@ def plan_install(source, target, mode, merge_entry):
         plan.append((dest, data, src.stat().st_mode & 0o777))
 
     if mode == 'project':
-        memory = target / 'CODEBUDDY.md'
-        if not memory.exists() and (target / 'AGENTS.md').exists():
-            memory = target / 'AGENTS.md'
-        if memory.exists():
-            ensure_safe(memory, target)
-            if not memory.is_file():
-                conflicts.append(str(memory) + ' (not a file)')
-            else:
-                content = memory.read_bytes()
-                block = ENTRY.encode('utf-8')
-                if block not in content:
-                    if START.encode() in content or END.encode() in content:
-                        conflicts.append(str(memory) + ' (different managed entry block)')
-                    elif not merge_entry:
-                        conflicts.append(str(memory) + ' (use --merge-entry to append without replacing it)')
-                    else:
-                        plan.append((memory, content + block, memory.stat().st_mode & 0o777))
-        else:
-            plan.append((memory, ('# Project memory\n' + ENTRY).encode(), 0o644))
         plan.append((target / '.codebuddy/harness/.gitignore', RUNTIME_IGNORE.encode(), 0o644))
     else:
         # Fresh workspace: use a restricted generated ignore, never the development repo .gitignore.
         plan.append((target / '.gitignore', RUNTIME_IGNORE.encode(), 0o644))
+
+    selected = []
+    if entry in ('codebuddy', 'both'):
+        selected.append('codebuddy')
+    if entry in ('agents', 'both'):
+        selected.append('agents')
+    specs = entry_specs(mode)
+    for key in selected:
+        name, pointer = specs[key]
+        dest = target / name
+        ensure_safe(dest, target)
+        block = entry_block(pointer)
+        if dest.exists():
+            if not dest.is_file():
+                conflicts.append(str(dest) + ' (not a file)')
+                continue
+            content = dest.read_bytes()
+            if block in content:
+                continue
+            if START.encode('utf-8') in content or END.encode('utf-8') in content:
+                conflicts.append(str(dest) + ' (different managed entry block)')
+            elif not merge_entry:
+                conflicts.append(str(dest) + ' (use --merge-entry to append without replacing it)')
+            else:
+                plan.append((dest, content + block, dest.stat().st_mode & 0o777))
+                entry_merges.add(dest)
+        else:
+            plan.append((dest, ('# Project memory\n' + block.decode('utf-8')).encode('utf-8'), 0o644))
 
     conventions = target / ('project-management' if mode == 'workspace' else '.codebuddy/harness/project-management') / 'conventions/README.md'
     plan.append((conventions, '# 公共约定\n\n仅记录用户明确确认的跨项目可复用内容。\n'.encode(), 0o644))
@@ -154,8 +178,8 @@ def plan_install(source, target, mode, merge_entry):
             if not dest.is_file():
                 conflicts.append(str(dest) + ' (not a file)')
             elif dest.read_bytes() != data:
-                # The entry merge is the only allowed modification, and only when explicitly authorized.
-                if not (mode == 'project' and dest.name in ('CODEBUDDY.md', 'AGENTS.md') and merge_entry and ENTRY.encode() in data and data.startswith(dest.read_bytes())):
+                # Entry merge is the only allowed modification, and only when explicitly authorized.
+                if not (dest in entry_merges and data.startswith(dest.read_bytes())):
                     conflicts.append(str(dest) + ' (different existing content)')
     if conflicts:
         raise ValueError('Refusing to overwrite existing files:\n  ' + '\n  '.join(sorted(set(conflicts))))
@@ -203,7 +227,9 @@ def main():
     p.add_argument('--target', required=True)
     p.add_argument('--mode', choices=('workspace', 'project'), default='project',
                    help='project: embed into an existing repo; workspace: fresh dedicated directory')
-    p.add_argument('--merge-entry', action='store_true', help='append managed memory block to existing CODEBUDDY.md or AGENTS.md')
+    p.add_argument('--entry', choices=ENTRY_CHOICES, default='codebuddy',
+                   help='host entry adapter to generate: codebuddy (default), agents, both, none')
+    p.add_argument('--merge-entry', action='store_true', help='append the managed entry block to an existing selected entry file')
     p.add_argument('--apply', action='store_true')
     args = p.parse_args()
     source = Path(__file__).resolve().parents[1]
@@ -211,8 +237,8 @@ def main():
     if target.is_symlink():
         raise ValueError('Symlink target is not allowed')
     target = target.resolve()
-    plan = plan_install(source, target, args.mode, args.merge_entry)
-    print(('APPLY' if args.apply else 'PREVIEW') + ': ' + str(target) + ' [' + args.mode + ']')
+    plan = plan_install(source, target, args.mode, args.merge_entry, args.entry)
+    print(('APPLY' if args.apply else 'PREVIEW') + ': ' + str(target) + ' [' + args.mode + ', entry=' + args.entry + ']')
     for dest, _, _ in plan:
         print(('MERGE ' if dest.exists() else 'CREATE ') + str(dest.relative_to(target)))
     if not args.apply:

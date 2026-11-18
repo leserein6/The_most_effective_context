@@ -67,3 +67,16 @@ python3 scripts/prompt_library.py check
 ```
 
 场景为 implement/review/research/author。list 只读元数据；show 校验正文、相对依赖及许可后显示选中原文和采用注意；check 校验全库。支持 `--root` 指定安装根目录，不依赖运行时网络。未知 ID、无匹配和哈希/路径异常返回非零。命令不执行上游脚本，不安装原生 Skill，也不代替主 Agent 填写授权与验收。
+
+## 安装入口（scripts/install.py）
+
+`--entry` 只决定生成哪个宿主入口，不复制规则正文：
+
+| 值 | 生成文件 | 内容 |
+|---|---|---|
+| `codebuddy`（默认） | `CODEBUDDY.md` | `@agent.md`（嵌入模式为 `@.codebuddy/harness/agent.md`） |
+| `agents` | `AGENTS.md` | 指向 `agent.md` 的入口说明 |
+| `both` | 两个都生成 | 同上 |
+| `none` | 不生成 | 只安装 `agent.md`，由用户自行改名/适配 |
+
+`--mode workspace` 要求目标为空；`--mode project` 写入 `.codebuddy/harness/`，已有入口文件只有在 `--merge-entry` 时才追加受管块，否则拒绝覆盖。

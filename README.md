@@ -50,8 +50,8 @@ unzip -q "$DL_DIR/harness-runtime.zip" -d "$DL_DIR/runtime"
 **方式 A：创建全新的独立 Workspace**（目标目录必须为空）：
 
 ```bash
-python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace
-python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace --apply
+python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace --entry codebuddy
+python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace --entry codebuddy --apply
 python3 ~/my-ai-workspace/scripts/pm.py doctor
 cd ~/my-ai-workspace
 codebuddy
@@ -60,12 +60,21 @@ codebuddy
 **方式 B：安装到已有业务代码仓库**（将目标换成你的真实路径）：
 
 ```bash
-python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --merge-entry
-python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --merge-entry --apply
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --entry codebuddy --merge-entry
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --entry codebuddy --merge-entry --apply
 python3 /绝对路径/业务仓库/.codebuddy/harness/scripts/pm.py doctor
 ```
 
 两种方式都是**先预览、后明确执行**，遇到同名内容冲突会拒绝覆盖。嵌入业务仓库时，Harness 运行文件集中在 `.codebuddy/harness/`，专业 Agent / Skill 位于 `.codebuddy/agents/`、`.codebuddy/skills/`；不改动你的业务 README、测试或原有 `.gitignore`。
+
+**入口约定：规则正文只有 `agent.md`。** 安装器按 `--entry` 生成你实际使用的那一个宿主入口，不把入口当成第二份规则：
+
+- `codebuddy`（默认）：生成 `CODEBUDDY.md`，内容 `@agent.md`；
+- `agents`：生成 `AGENTS.md`，指向 `agent.md`；
+- `both`：两个都生成；
+- `none`：只放 `agent.md`，由你自行改名或适配。
+
+嵌入业务仓库时，入口指向 `.codebuddy/harness/agent.md`。入口文件是生成物，修改规则请改 `agent.md`，然后用同一 `--entry` 重新安装。
 
 如手动在网页下载了运行包，命令里的 `"$DL_DIR/runtime/scripts/install.py"` 改为实际解压位置。正常安装无需执行 `git clone` 或 `pip install`。
 

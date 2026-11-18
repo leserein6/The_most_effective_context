@@ -44,7 +44,7 @@ flowchart TD
 
 ## 安装布局与入口边界
 
-独立 Workspace 使用根目录的 `CODEBUDDY.md → agent.md`；嵌入已有业务仓库时，根 `CODEBUDDY.md`（或仅有的 `AGENTS.md`）通过显式合并引用 `.codebuddy/harness/agent.md`。其余管理协议、脚本与项目状态保存在 `.codebuddy/harness/`，项目级 Agent/Skill 保留在业务仓库 `.codebuddy/agents/` 和 `.codebuddy/skills/`。这是部署路径变化，不新建第二套 Project/Task/Mode。安装器白名单与真实用户数据必须隔离。
+独立 Workspace 只安装 `agent.md` 作为规则正文，安装器按 `--entry` 生成 `CODEBUDDY.md` 或 `AGENTS.md` 入口适配；嵌入已有业务仓库时，入口按同一选项生成并指向 `.codebuddy/harness/agent.md`。其余管理协议、脚本与项目状态保存在 `.codebuddy/harness/`，项目级 Agent/Skill 保留在业务仓库 `.codebuddy/agents/` 和 `.codebuddy/skills/`。入口是适配器，不是第二份规则；这是部署路径变化，不新建第二套 Project/Task/Mode。安装器白名单与真实用户数据必须隔离。
 
 ## 维护与交付边界
 
@@ -92,7 +92,7 @@ token 不覆盖 work 和普通 source 文件，代码并行由所有权/worktree
 
 ## 接口与可替换性
 
-管理脚本不依赖模型、API Key 或 CodeBuddy 私有接口；可供其他 Agent 调用。CLI 集成只依赖官方 AGENTS.md 适配和 .codebuddy/agents Markdown 定义；agent.md 是本仓库规范入口；没有伪造 Hook 或自动调度 API。未来可替换前端/模型/存储，但当前不扩展软件页面或独立服务。
+管理脚本不依赖模型、API Key 或 CodeBuddy 私有接口；可供其他 Agent 调用。CLI 集成只依赖安装器按宿主生成的入口适配和 .codebuddy/agents Markdown 定义；`agent.md` 是唯一规则正文；没有伪造 Hook 或自动调度 API。未来可替换前端/模型/存储，但当前不扩展软件页面或独立服务。
 
 ## 研究与后续演进
 
