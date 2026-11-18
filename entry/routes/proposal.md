@@ -7,6 +7,7 @@
 | 关键目标、边界、验收或用户取舍未明确 | [clarify](../../evidence/methods/clarify.md) |
 | 现有能力/技术事实尚无依据 | 按需 [research](../../evidence/methods/research.md)，不要求用户替你查代码 |
 | 需要决定职责、接口、数据流或方案取舍 | [design](../../evidence/methods/design.md) |
+| 需要选择测试方法、论证其充分性 | [方法选择协议](../../evidence/testing/selection.md)，按影响风险选择 EP/BVA、状态、组合、MC/DC 等，形成覆盖分母与独立判定依据 |
 | 需要设计开发需求的验收条件、场景、判据和环境 | [测试设计](../../evidence/testing/design.md)，与 design / plan 共用同一套验收条件 |
 | 方案已明，需要拆文件、依赖、动作和验收 | [plan](../../evidence/methods/plan.md) |
 

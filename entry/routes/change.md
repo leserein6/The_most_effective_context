@@ -7,6 +7,7 @@
 | 关键需求/授权/已确认约束存在分歧 | [clarify](../../evidence/methods/clarify.md) |
 | 需要核实现有行为或依赖版本 | 仅为该缺口读 [research](../../evidence/methods/research.md) |
 | 需要作关键设计取舍/安排复杂实施 | 分别按需读 [design](../../evidence/methods/design.md) / [plan](../../evidence/methods/plan.md) |
+| 行为变更涉及重要状态/并发/接口/边界且未有合适测试策略 | 先按 [方法选择协议](../../evidence/testing/selection.md) 确定候选方法和证明义务，再进入执行；不能反推预期 |
 | 行为变更、缺陷修复或项目回归 | 确认[判据与场景](../../evidence/testing/design.md)，实现时按[运行与证据](../../evidence/testing/execution.md)执行，并交给 verify |
 | 已有异常、失败测试或错误行为 | [debug](../../evidence/methods/debug.md)，定位后再实施 |
 | 目标/边界清楚，可以实际修改 | [execute](../../evidence/methods/execute.md) |

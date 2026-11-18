@@ -90,6 +90,9 @@ def main():
         "started_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "cwd": str(Path.cwd()), "platform": platform.platform(), "command": command,
         "plan_sha256": hashlib.sha256(raw).hexdigest(), "exit_code": None,
+        "evidence_scope": "declared criteria and JUnit test cases from this invocation only",
+        "candidate_binding": "caller_supplied_not_independently_verified",
+        "design_adequacy": "UNVERIFIED",
         "notes": [], "criteria": [],
     }
     (output / "plan.json").write_bytes(raw)

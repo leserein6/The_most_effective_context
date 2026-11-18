@@ -2,6 +2,14 @@
 
 在业务仓库确认测试入口、依赖和夹具，选与风险匹配的真实环境。复用已有测试框架。支持输出 JUnit XML 时，可用随安装提供的 [test_gate.py](../../scripts/test_gate.py) 将一组关键条件与本次运行绑定。其他框架保留原始报告并由 Verify 按同样的条件逐项核对。
 
+## 测试方法建议辅助（可选，不替代设计）
+
+使用标准库脚本 scripts/testing_strategy.py。输入 schema 为 testing/strategy-input-v1，包含 change_id 及 claims 数组；每项包括 id、source、claim、impact（low/medium/high/critical）和 features（参见脚本定义），另建议 oracle、counterexample、environment。
+
+    python3 <Harness>/scripts/testing_strategy.py --input <业务仓库输入.json>
+
+可从 [独立示例](examples/strategy-input.json) 参考格式。输出固定为 DRAFT_UNREVIEWED，仅给出候选方法和证明义务。审查者必须补齐规格、oracle、测试用例、覆盖分母。执行器不会核实是否漏掉受影响需求。
+
 ## 验收计划
 
 ```json

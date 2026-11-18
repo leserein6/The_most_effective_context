@@ -18,6 +18,8 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 开发型需求通过[测试工程](evidence/testing/README.md)把业务承诺对应到可执行用例、候选版本、验收与回归。
 
+完整的开发需求测试工程包含 [方法目录](evidence/testing/catalog.md)、[选择协议](evidence/testing/selection.md)、[充分性与双重门禁](evidence/testing/adequacy.md)、[具体模型](evidence/testing/models.md)和既有测试运行器。测试用例在业务仓库，Harness 不自动认定自己生成的测试充分。
+
 ## 先看什么
 
 - [总体设计](docs/Architecture.md)

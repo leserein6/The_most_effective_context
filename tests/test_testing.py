@@ -70,6 +70,10 @@ class TestingFlow(unittest.TestCase):
                    "{junit}", str(code)]
             self.assertEqual(self.run_gate(*cmd, out=str(index)).returncode, expected)
         target = self.work / "0/result.json"
+        meta = json.loads(target.read_text())
+        self.assertEqual(meta["design_adequacy"], "UNVERIFIED")
+        self.assertIn("declared criteria", meta["evidence_scope"])
+        self.assertIn("caller_supplied", meta["candidate_binding"])
         old = target.read_bytes()
         self.assertEqual(self.run_gate(sys.executable, "-V", out="0").returncode, 2)
         self.assertEqual(target.read_bytes(), old)
