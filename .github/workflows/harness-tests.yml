@@ -1,0 +1,20 @@
+name: Harness tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run workspace and testing regressions
+        run: python3 -m unittest discover -s tests -v
+      - name: Verify reading-list acceptance criteria
+        run: |
+          python3 scripts/test_gate.py --candidate "$GITHUB_SHA" --plan tests/fixtures/reading_list/plan.json --out "$RUNNER_TEMP/book-acceptance" -- python3 tests/fixtures/reading_list/acceptance.py
+      - name: Retain book acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-acceptance
+          path: ${{ runner.temp }}/book-acceptance

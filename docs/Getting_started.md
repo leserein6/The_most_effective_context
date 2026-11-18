@@ -59,3 +59,14 @@ python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry 
 ## 7. Git
 
 自动保存是本地文件保存，不等于自动 commit。需要版本同步时，先检查 `git status` 与 diff，再明确要求 Agent 提交/推送。私密项目建议私有仓库；.pm-runtime、.env、CodeBuddy 本地配置已忽略。不要提交 API Key。
+
+## 开发者试跑测试工程
+
+在完整开发副本中运行以下命令，输出目录每次使用新名称。用户安装包保留测试运行器和方法，示范工程位于开发测试目录。
+
+```bash
+python3 scripts/test_gate.py --candidate "$(git rev-parse HEAD)" --plan tests/fixtures/reading_list/plan.json --out .pm-runtime/book-run-1 -- python3 tests/fixtures/reading_list/acceptance.py
+python3 -m unittest discover -s tests -p test_testing.py -v
+```
+
+第一条在干净 checkout 中对书单 CLI 的合法导入与整批回退执行验收；第二条还会在临时副本里测试会留下半批数据的实现，以及另一种合规实现。实际业务项目采用自己的测试入口与规格，接入方式见[测试工程](../evidence/testing/README.md)。

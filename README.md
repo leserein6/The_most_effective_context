@@ -16,6 +16,8 @@
 
 Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、归档（暂不推进但未完成）、已完成；每种状态均支持开发型、学习型、一次性任务。Task 不独立落盘。
 
+开发型需求通过[测试工程](evidence/testing/README.md)把业务承诺对应到可执行用例、候选版本、验收与回归。
+
 ## 先看什么
 
 - [总体设计](docs/Architecture.md)
@@ -36,7 +38,7 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 ```bash
 git clone --depth 1 --filter=blob:none --sparse https://github.com/leserein6/The_most_effective_context.git
 cd The_most_effective_context
-git sparse-checkout set --no-cone '/*' '!/tests/' '!/evidence/evals/'
+git sparse-checkout set --no-cone '/*' '!/tests/' '!/evidence/evals/' '!/.github/workflows/harness-tests.yml'
 python3 scripts/pm.py doctor
 codebuddy
 ```

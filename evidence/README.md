@@ -6,6 +6,7 @@ Task 路由由根 [agent.md](../agent.md) 负责，场景分支在 `entry/routes
 
 | 目录 | 内容 | 读取时机 |
 |---|---|---|
+| [testing/](testing/README.md) | 开发型需求的测试设计、执行、验收与回归 | 开发和评估路由按当前阶段读取 |
 | [methods/](methods/) | 十份方法正文：clarify、research、design、plan、execute、debug、review、verify、orchestrate、learn | 二级路由选中当前方法时 |
 | [prompts/](prompts/README.md) | 可选外部 Skill/Prompt 原文库，以及共用委派/计划输入格式 | 主 Agent 派发时按职责选择一份；编写协议时选 author |
 | [references/](references/) | 工程检查点、证据契约与方法来源记录 | 方法指向具体参考，或核对来源时 |

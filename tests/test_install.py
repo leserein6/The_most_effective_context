@@ -26,6 +26,9 @@ class InstallTests(unittest.TestCase):
             for directory in ('tests', 'evidence/evals'):
                 self.assertFalse((target / directory).exists())
             self.assertTrue((target / 'evidence/methods/verify.md').is_file())
+            self.assertTrue((target / 'evidence/testing/README.md').is_file())
+            self.assertTrue((target / 'scripts/test_gate.py').is_file())
+            self.assertFalse((target / '.github/workflows/harness-tests.yml').exists())
             original = entry.read_text()
             result = subprocess.run(args + ['--apply'], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)

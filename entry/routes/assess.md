@@ -6,6 +6,7 @@
 |---|---|
 | 检查代码/方案的缺陷、遗漏、误解或质量 | [review](../../evidence/methods/review.md) |
 | 判断是否已创建、完成、修复、测试通过 | [verify](../../evidence/methods/verify.md) |
+| 评估开发需求测试是否充分、能否交付 | [测试验收](../../evidence/testing/acceptance.md)与 verify 对照关键条件、候选版本和运行证据 |
 | 为一个具体审查点查版本/源码事实 | 按需 [research](../../evidence/methods/research.md) |
 | 审查对象/基线/标准实质不明且无法自行确认 | [clarify](../../evidence/methods/clarify.md)；缺规格时不假造需求符合结论 |
 
