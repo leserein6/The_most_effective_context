@@ -11,7 +11,7 @@
 | resume ID | 恢复包、token、压缩提醒 |
 | describe ID | 更新名称/一句话目标，并刷新索引 |
 | checkpoint ID | 每轮保存当前状态、决策、知识、流水 |
-| edit ID | 更新验收条件、状态、知识或资料索引 |
+| edit ID | 更新验收条件、知识或资料索引（项目状态迁移使用 status） |
 | status ID | 用户确认后迁移状态，保留 ID 和内容 |
 | compact ID | 原文归档、追加摘要、重置活跃日志 |
 | promote ID | 确认后将公共知识纳入 conventions |
