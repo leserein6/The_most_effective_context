@@ -9,4 +9,4 @@
 5. 先明确 definition.md 中的问题、结果、边界、交付、硬约束，以及 acceptance.md 的验收条件；未知可保留待定，不编造。
 6. 实际检查创建结果；失败不得声称成功。本轮之后仍遵循 [每轮保存](maintain.md)。
 
-没有自动导入旧 `projects/<id>/project.yaml`。旧实例若存在，按 [迁移说明](../../docs/Migration.md) 显式处理，不重建覆盖。
+不会自动导入旧 `projects/<id>/project.yaml`。发现旧实例时停止自动迁移并保留原始数据；需从 Harness 源码仓库查看 `docs/Migration.md`，制定显式迁移方案，不重建覆盖。该维护文档不随运行包安装。
