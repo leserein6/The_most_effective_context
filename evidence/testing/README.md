@@ -28,7 +28,7 @@
 - Project 的 `acceptance.md` 保存长期承诺与规格来源，按已有 edit 协议更新。单次开发工作只记与本次相关的项目产物。
 - 业务仓库维护可执行用例、夹具和真实测试命令。复杂需求可把验收计划纳入业务仓库版本控制，已有测试平台也可以提供等价映射。
 - 运行证据保存在有保留期保障的 CI 产物，或 Project 的 `work/testing/<run-id>/` 下。Project 状态及详细流水由主 Agent 按 [每轮保存](../../project-management/protocols/maintain.md) 写入。
-- 方法和程序随 Harness 安装。维护者使用开发版的书单 CLI 回归与模型场景另行检验 Harness。
+- 方法和必要脚本随 Harness 安装。维护者在独立临时环境中验证 Harness 本身；维护用例、夹具和测试 CI 不在本仓库持久化。
 
 ## 方法依据
 

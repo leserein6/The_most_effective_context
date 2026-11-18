@@ -60,23 +60,14 @@ python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry 
 
 自动保存是本地文件保存，不等于自动 commit。需要版本同步时，先检查 `git status` 与 diff，再明确要求 Agent 提交/推送。私密项目建议私有仓库；.pm-runtime、.env、CodeBuddy 本地配置已忽略。不要提交 API Key。
 
-## 开发需求的测试方法选择（普通用户可运行）
+## 开发需求如何测试
 
-在业务仓库先确认规格，按 [选择协议](../evidence/testing/selection.md) 编写输入。只想观察本仓库的独立示例，可以运行：
+先确认验收条件和关键不变量，再根据 [方法选择协议](../evidence/testing/selection.md) 选择适用的边界、状态、存储、并发、契约或故障检查。
 
-```bash
-python3 scripts/testing_strategy.py --input evidence/testing/examples/strategy-input.json
-```
-
-结果 DRAFT_UNREVIEWED 是**候选方法**，不是通过的测试或覆盖率报告。随后阅读 [充分性审查](../evidence/testing/adequacy.md) 决定如何验证测试计划。用户安装不含 tests/ 与 evidence/evals/。
-
-## 开发者试跑测试工程
-
-在完整开发副本中运行以下命令，输出目录每次使用新名称。用户安装包保留测试运行器和方法，示范工程位于开发测试目录。
+可选：在**业务仓库**按 [testing_strategy.py](../scripts/testing_strategy.py) 的 `testing/strategy-input-v1` schema 编写包含 `change_id`、`claims` 的 JSON，然后运行：
 
 ```bash
-python3 scripts/test_gate.py --candidate "$(git rev-parse HEAD)" --plan tests/fixtures/reading_list/plan.json --out .pm-runtime/book-run-1 -- python3 tests/fixtures/reading_list/acceptance.py
-python3 -m unittest discover -s tests -p test_testing.py -v
+python3 scripts/testing_strategy.py --input /路径/业务项目/strategy-input.json
 ```
 
-第一条在干净 checkout 中对书单 CLI 的合法导入与整批回退执行验收；第二条还会在临时副本里测试会留下半批数据的实现，以及另一种合规实现。实际业务项目采用自己的测试入口与规格，接入方式见[测试工程](../evidence/testing/README.md)。
+输出 `DRAFT_UNREVIEWED` 只是候选方法，不是测试执行结果。实际测试运行方式见 [运行与证据](../evidence/testing/execution.md)，质量判定见 [充分性审查](../evidence/testing/adequacy.md)。维护者自身测试不提交到 Harness 仓库。

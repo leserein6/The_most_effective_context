@@ -28,24 +28,23 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 - [协议职责与去重](docs/Protocol_boundaries.md)
 - [已确认需求](docs/Requirements.md)
 - [安装与使用](docs/Getting_started.md)
-- [验收清单](docs/Acceptance.md)与[实际测试结果](docs/Test_results.md)
+- [验收与质量门禁](docs/Acceptance.md)
 - [命令与数据契约](docs/CLI.md)
 - [与 V0.2 的迁移关系](docs/Migration.md)
 - [实现与验证边界](docs/Verification.md)
 
 ## 在 Mac 上使用
 
-用户可以只拉取使用 Harness 需要的工作树，省去开发测试和模型评测用例。**当前测试工程仍处于 PR #3 分支（其基线为 PR #2 → PR #1），main 尚未包含这些改动。** 要试用本次改造，在终端执行：
+本仓库只发布 Harness 的协议、使用方法和必要脚本，不提交维护者测试用例或测试专用 CI。当前开发版本位于统一分支 `codex/project-workspace-v1-20261117`（未合并 main）。首次使用：
 
 ```bash
-git clone --depth 1 --filter=blob:none --sparse -b codex/testing-methodology-v2-20261118 https://github.com/leserein6/The_most_effective_context.git
+git clone -b codex/project-workspace-v1-20261117 https://github.com/leserein6/The_most_effective_context.git
 cd The_most_effective_context
-git sparse-checkout set --no-cone '/*' '!/tests/' '!/evidence/evals/' '!/.github/workflows/harness-tests.yml'
 python3 scripts/pm.py doctor
 codebuddy
 ```
 
-后续在该目录执行 `git pull` 会沿用本地稀疏检出设置。已有完整开发副本的用户也可直接用安装器，它会跳过测试目录。需要 Python 3.9+ 和 CodeBuddy。开发者使用普通 `git clone` 获取完整仓库，在源码目录运行 `python3 -m unittest discover -s tests -v`。
+已有该分支的本地仓库使用 `git pull --ff-only` 同步。需要 Python 3.9+ 和 CodeBuddy。业务测试及 CI 应留在业务仓库，Harness 自身的维护用例不随本仓库分发。
 
 首次输入：
 
@@ -55,6 +54,6 @@ codebuddy
 
 ## 验证范围
 
-脚本行为、冲突拒绝、日志原文保留、进程中断回滚及安装器有自动测试。自然语言归属、模式选择、真实 Subagent 调度与每轮写回遵守率仍需要在你的 CodeBuddy 环境按清单实测，不能把文档要求当作程序强制保证。
+脚本行为、冲突拒绝、日志原文保留、进程中断回滚及安装器已在开发过程中接受自动回归；维护用例不保留在本仓库。自然语言归属、模式选择、真实 Subagent 调度与每轮写回遵守率仍需要在你的 CodeBuddy 环境按清单实测，不能把文档要求当作程序强制保证。
 
 不自动 commit/push；只在用户要求时进行。当前仓库没有真实用户项目或私密历史，示例只在临时目录运行。旧 YAML 模板保留作历史参考，不会被自动迁移或当作当前实例读取。

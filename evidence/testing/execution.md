@@ -8,7 +8,7 @@
 
     python3 <Harness>/scripts/testing_strategy.py --input <业务仓库输入.json>
 
-可从 [独立示例](examples/strategy-input.json) 参考格式。输出固定为 DRAFT_UNREVIEWED，仅给出候选方法和证明义务。审查者必须补齐规格、oracle、测试用例、覆盖分母。执行器不会核实是否漏掉受影响需求。
+业务项目自行根据需求建立输入，字段以工具 schema 为准。输出固定为 DRAFT_UNREVIEWED，仅给出候选方法和证明义务。审查者必须补齐规格、oracle、测试用例、覆盖分母。执行器不会核实是否漏掉受影响需求。
 
 ## 验收计划
 
@@ -17,10 +17,10 @@
   "schema": "testing/v1",
   "criteria": [
     {
-      "id": "BOOK-2",
-      "source": "书单需求 R1：空书名使整批失败",
-      "expected": "报告错误；重开书库仅见导入前内容",
-      "cases": ["ReadingList::test_rejected_batch"]
+      "id": "ORDER-1",
+      "source": "经确认的订单接口需求",
+      "expected": "非法数量被拒绝且库存不变",
+      "cases": ["OrderServiceTest::test_reject_invalid_quantity"]
     }
   ]
 }

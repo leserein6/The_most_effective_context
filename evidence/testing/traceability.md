@@ -32,6 +32,6 @@
 
 ## 安装、恢复与审计
 
-安装包应包含 evidence/testing/ 方法文档、scripts/test_gate.py 和可选 scripts/testing_strategy.py；**不要把仓库维护者的 tests/ 和 evidence/evals/ 放入用户安装包**。Harness 维护回归保留在开发仓库，由 CI 运行。
+仓库保留 evidence/testing/ 方法文档、scripts/test_gate.py 和可选 scripts/testing_strategy.py；**不提交维护者 tests/、evidence/evals/、测试 CI 或运行夹具**。维护回归在独立临时环境执行；业务项目仍须自行维护业务测试和 CI。
 
 Project checkpoint 的 evidence 写入候选 SHA/工作树快照、计划与模型版本、设计审查结果、实际 run-id 和持久报告链接。日志记录动作与重要异常；恢复时按影响分析定位所需结果，不加载全部历史测试。

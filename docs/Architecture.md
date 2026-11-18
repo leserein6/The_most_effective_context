@@ -42,6 +42,10 @@ flowchart TD
 
 测试运行器 PASS 只证实本轮已列入计划的执行情况，**不能替代规格确认或测试设计充分性审查**。参见 [测试方法选择](../evidence/testing/selection.md) 与 [充分性审查](../evidence/testing/adequacy.md)。
 
+## 维护与交付边界
+
+本仓库只版本化 Harness 运行所需协议、方法与工具。维护者测试/评测材料和临时验证日志不提交到本仓库；业务测试代码、CI 和运行报告由实际业务仓库管理。
+
 ## 文件职责
 
 | 路径 | 内容与加载时机 |
@@ -52,7 +56,6 @@ flowchart TD
 | evidence/methods/ | 十份思想方法正文，按当前阶段读取 |
 | evidence/prompts/ | 共用委派/计划格式、按场景检索的外部原始资源库 |
 | evidence/references/ | 回传证据契约、工程检查点与方法来源 |
-| evidence/evals/ | 协议行为场景与评价材料 |
 | .codebuddy/agents/ | 官方 Markdown 格式的 worker/reviewer 定义 |
 | project-management/README.md | 独立项目管理操作入口 |
 | project-management/Index.md | 活跃索引，派生生成 |
@@ -60,7 +63,6 @@ flowchart TD
 | project-management/conventions/ | 用户确认后的公共积累 |
 | project-management/projects/状态/类型/ID/ | Project 权威数据 |
 | scripts/ | 实际文件操作、安装和演示 |
-| tests/ | 行为、并发、恢复、完整性和安装测试 |
 | .pm-runtime/ | 本地锁、未完成事务、临时 payload；不入 Git |
 
 ## 单个 Project

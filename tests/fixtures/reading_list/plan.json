@@ -1,7 +1,0 @@
-{
-  "schema": "testing/v1",
-  "criteria": [
-    {"id":"BOOK-1","source":"书单契约：合法新增批次全量导入并保留旧书","expected":"重开后 A、B、C 的标题均正确","cases":["ReadingList::test_valid_batch"]},
-    {"id":"BOOK-2","source":"书单契约：空书名使整批导入失败","expected":"CLI 提示空书名，重开仅见原有 A","cases":["ReadingList::test_rejected_batch"]}
-  ]
-}

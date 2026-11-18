@@ -7,3 +7,11 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# 本仓库不版本化维护者测试/评测材料（业务仓库自行管理业务测试）
+tests/
+evidence/evals/
+.github/workflows/harness-tests.yml
+scripts/demo.py
+docs/Test_results.md
+evidence/testing/examples/strategy-input.json
