@@ -1,73 +1,104 @@
 # The Most Effective Context
 
-让 Agent 在正确时机加载最小充分上下文，执行当前任务，并可靠接续长期项目。
+一个面向 CodeBuddy CLI / AI Agent 的 Project 与任务执行 Harness：**让 AI 知道当前要做什么、按什么方法执行，以及长期项目进行到哪里。**
 
-本次在原 V0.2 协议仓库上迭代为 **V1.1 文件型 Workspace 与 Project Harness**：保留 `agent.md` 入口、Evidence 执行体系、独立 `project-management`，覆盖项目生命周期、七种模式、Subagent 协作、每轮日志、压缩归档、并发检查与进程中断恢复。
+你可以直接提出开发、学习、调研或审查任务；Agent 按需读取执行方法、恢复 Project 状态，并记录有证据的进展。它不是 AI 模型，也不会自动获得更高的系统权限。
 
-## 总体边界
+## 主要能力
 
-| 层次 | 职责 |
-|---|---|
-| [agent.md](agent.md) | 总入口：锚定 Task/Project，内含一级 Task 路由 |
-| [entry/routes/](entry/routes/) | 入口的二级场景路由，按预期交付选读 |
-| [Evidence](evidence/README.md) | methods / prompts / references / testing，按需读取方法与测试工程知识 |
-| [Project Management](project-management/README.md) | 跨会话保存目标、进度、决策、知识与流水 |
-| [scripts/pm.py](scripts/pm.py) | 真实文件操作、索引、版本检查与本地恢复 |
+- **Project 管理**：开发型、学习型、一次性项目；活跃、归档、已完成三种状态；跨会话恢复。
+- **任务执行**：针对需求澄清、调研、设计、实施、审查、测试、学习及编排等场景按需加载方法。
+- **协作与验证**：可选专业 Agent、Go / tRPC-Go / 金融审查 Skill、证据与测试工程协议。
+- **持续记录**：每轮写回真实进度、决策与操作流水，支持日志压缩、归档及本地冲突检测。
 
-Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、归档（暂不推进但未完成）、已完成；每种状态均支持开发型、学习型、一次性任务。Task 不独立落盘。
+**普通用户不需要 clone 这个源码仓库。** 用户安装的是精简的运行包，里面没有维护者的 `docs/`、测试、根 README、源码仓库 Project 实例和 Git 历史。
 
-开发型需求通过[测试工程](evidence/testing/README.md)把业务承诺对应到可执行用例、候选版本、验收与回归。
+## 安装（Mac）
 
-完整的开发需求测试工程包含 [方法目录](evidence/testing/catalog.md)、[选择协议](evidence/testing/selection.md)、[充分性与双重门禁](evidence/testing/adequacy.md)、[具体模型](evidence/testing/models.md)和既有测试运行器。测试用例在业务仓库，Harness 不自动认定自己生成的测试充分。
+准备：Python 3.9+、CodeBuddy CLI，以及该 GitHub 仓库的访问权限。目前仓库为 **Private**，因此下载 GitHub Actions 安装包需要登录有权限的 GitHub 账号；如果你让 AI 帮忙安装，也仍需由你完成账号授权。
 
-## 先看什么
+### 1. 获取精简运行包（无需 git clone）
 
-- [总体设计](docs/Architecture.md)
-- [每轮Task与二级方法索引](docs/Task_routing.md)
-- [CodeBuddy 专业 Agent 与 Go/tRPC-Go/金融 Review Skill](docs/Agents.md)
-- [历史 Prompt 去重与复用决策](docs/Prompt_inventory.md)
-- [外部 Skill / Prompt 资源库](evidence/prompts/README.md)
-- [协议职责与去重](docs/Protocol_boundaries.md)
-- [已确认需求](docs/Requirements.md)
-- [安装与使用](docs/Getting_started.md)
-- [验收与质量门禁](docs/Acceptance.md)
-- [命令与数据契约](docs/CLI.md)
-- [与 V0.2 的迁移关系](docs/Migration.md)
-- [实现与验证边界](docs/Verification.md)
+在 GitHub 仓库打开 **Actions → Build minimal Harness runtime → 最近一次成功运行 → Artifacts → harness-runtime**，下载并解压 Artifact。里面有：
 
-## 在 Mac 上使用
+```text
+harness-runtime.zip
+harness-runtime.zip.sha256
+```
 
-这个 GitHub 仓库是 **Harness 源码及维护资料**，并不等于普通用户的工作区。安装器使用 `install-manifest.json` 明确白名单：默认**不安装 `docs/`、根 `README.md`、安装器自身、安装清单、维护测试或源仓库 Project 数据**，仅向目标工作区复制运行时必需文件。日常使用只在目标工作区进行；升级或重新安装时才回到源码仓库。当前开发版本位于 `codex/project-workspace-v1-20261117`（未合并 main）。首次使用：
+核对 SHA-256 后再解压 `harness-runtime.zip`，其中只有安装器、安装白名单和运行所需文件；不含 `docs/`。
+
+也可以让 AI 运行下面的命令，以 GitHub CLI 自动获取最新一次**成功**的构建产物：
 
 ```bash
-git clone -b codex/project-workspace-v1-20261117 https://github.com/leserein6/The_most_effective_context.git
-cd The_most_effective_context
-python3 scripts/install.py --target ~/my-ai-workspace --mode workspace
-python3 scripts/install.py --target ~/my-ai-workspace --mode workspace --apply
+# 安装过 gh 并登录后即可使用（首次执行 gh auth login）
+REPO=leserein6/The_most_effective_context
+BRANCH=codex/project-workspace-v1-20261117
+RUN_ID=$(gh run list --repo "$REPO" --workflow runtime-package.yml --branch "$BRANCH" --limit 20 --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
+test -n "$RUN_ID" || { echo "没有找到成功的运行包构建，请查看仓库 Actions"; exit 1; }
+
+DL_DIR=$(mktemp -d)
+gh run download "$RUN_ID" --repo "$REPO" --name harness-runtime --dir "$DL_DIR"
+(cd "$DL_DIR" && shasum -a 256 -c harness-runtime.zip.sha256)
+unzip -q "$DL_DIR/harness-runtime.zip" -d "$DL_DIR/runtime"
+```
+
+上面使用的 `$DL_DIR/runtime` 是临时解压的安装包目录，不是日常 Workspace。GitHub Actions 产物可能按仓库保留策略过期；需要时由维护者重新运行打包流程。
+
+### 2. 安装到你的工作区
+
+**方式 A：创建全新的独立 Workspace**（目标目录必须为空）：
+
+```bash
+python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace
+python3 "$DL_DIR/runtime/scripts/install.py" --target ~/my-ai-workspace --mode workspace --apply
+python3 ~/my-ai-workspace/scripts/pm.py doctor
 cd ~/my-ai-workspace
-python3 scripts/pm.py doctor
 codebuddy
 ```
 
-已有该分支的源码仓库使用 `git pull --ff-only` 同步。需要 Python 3.9+ 和 CodeBuddy；安装目标应是新的空目录。上述安装命令先预览、再执行；源码仓库与 `~/my-ai-workspace` 是两个不同目录。业务测试及 CI 留在业务仓库，Harness 的维护用例不随发行版本分发。
-
-**装入已有 Go/C++ 业务仓库**（不修改业务根目录 README、`.gitignore` 或测试代码）：
+**方式 B：安装到已有业务代码仓库**（将目标换成你的真实路径）：
 
 ```bash
-python3 scripts/install.py --target /绝对路径/业务仓库 --mode project --merge-entry
-python3 scripts/install.py --target /绝对路径/业务仓库 --mode project --merge-entry --apply
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --merge-entry
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --merge-entry --apply
+python3 /绝对路径/业务仓库/.codebuddy/harness/scripts/pm.py doctor
 ```
 
-先预览后执行。Harness 协议位于业务仓库 `.codebuddy/harness/`，专用 Agent/Skill 放在业务仓库 `.codebuddy/agents/`、`.codebuddy/skills/`；原有 `CODEBUDDY.md` 或 `AGENTS.md` 仅在显式 `--merge-entry` 后追加带标记的入口，不覆盖原内容。全新独立目录安装用 `--mode workspace`，要求目标为空。详见 [安装说明](docs/Getting_started.md)。
+两种方式都是**先预览、后明确执行**，遇到同名内容冲突会拒绝覆盖。嵌入业务仓库时，Harness 运行文件集中在 `.codebuddy/harness/`，专业 Agent / Skill 位于 `.codebuddy/agents/`、`.codebuddy/skills/`；不改动你的业务 README、测试或原有 `.gitignore`。
 
-首次输入：
+如手动在网页下载了运行包，命令里的 `"$DL_DIR/runtime/scripts/install.py"` 改为实际解压位置。正常安装无需执行 `git clone` 或 `pip install`。
 
-> 请读取 agent.md 并检查活跃 Index。我想新建一个开发型 Project，目标是实现命令行待办工具。先给我名称、类型和一句话目标确认，再创建、实现并验证。
+### 3. 日常使用
 
-`agent.md` 是规范执行入口；`CODEBUDDY.md` 作为 CodeBuddy 推荐入口通过 `@agent.md` 导入，`AGENTS.md` 是兼容其他 CLI 的薄适配。两者不各自维护规则。使用 `/memory` 核实加载，不把文件存在当成已激活。
+在已安装的 Workspace / 业务仓库中启动 `codebuddy`，例如：
 
-## 验证范围
+> 我想新建一个开发型 Project，目标是实现一个命令行待办工具。请先确认名称、类型和一句话目标，再创建、实现并验证。
 
-脚本行为、冲突拒绝、日志原文保留、进程中断回滚及安装器已在开发过程中接受自动回归；维护用例不保留在本仓库。自然语言归属、模式选择、真实 Subagent 调度与每轮写回遵守率仍需要在你的 CodeBuddy 环境按清单实测，不能把文档要求当作程序强制保证。
+下次会话直接说「继续这个 Project」，Agent 应检查索引、恢复现状并按需读取资料。可以使用 CodeBuddy 的 `/memory`、`/agents` 检查入口和专业 Agent 是否真实可用；**只看到文件存在并不代表模型行为已验收**。
 
-不自动 commit/push；只在用户要求时进行。当前仓库没有真实用户项目或私密历史，示例只在临时目录运行。旧 YAML 模板保留作历史参考，不会被自动迁移或当作当前实例读取。
+自动保存 Project 状态不等于自动 `git commit` / `git push`；这些操作只在用户明确要求时进行。遇到版本升级冲突需要审查差异，不能自动覆盖现有项目记录。
+
+## 常见边界
+
+- 项目状态写回、冲突检测、日志归档由本地 Python 脚本完成；自然语言路由、模式选择、多 Agent 调度以及实际测试质量还需要真实 CodeBuddy 环境验证。
+- 不会自动上传公司源码、敏感业务日志或密钥。请按所在组织的权限与数据处理要求使用外部 AI 工具。
+- 运行包只复制安装白名单中的文件；日志、Project 数据以及用户业务代码保存在**用户自己的 Workspace** 中。
+- GitHub Actions 尚未成功构建时，不能把运行包描述为已发布。开发者可从源仓库构建，下文提供命令。
+
+## 开发与维护（普通用户无需阅读）
+
+这里是**源码仓库**，包含架构、研究、维护说明及打包工具；日常用户只安装上面的运行包。
+
+- [架构](docs/Architecture.md) · [需求及约束](docs/Requirements.md) · [协议边界](docs/Protocol_boundaries.md)
+- [任务路由](docs/Task_routing.md) · [Agent 设计](docs/Agents.md) · [实现边界](docs/Verification.md)
+- [安装/命令契约](docs/CLI.md) · [迁移](docs/Migration.md) · [验收](docs/Acceptance.md)
+
+维护者 clone 源码后可构建和校验安装包：
+
+```bash
+python3 scripts/build_runtime.py --output dist/harness-runtime.zip
+python3 scripts/build_runtime.py --output dist/harness-runtime.zip --verify
+```
+
+打包仅依据 `install-manifest.json`；`scripts/install.py` 和白名单是用户运行包所必需的，`docs/`、维护者资料和源项目数据永远不进入包。对应工作流为 `.github/workflows/runtime-package.yml`。
