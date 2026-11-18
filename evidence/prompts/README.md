@@ -2,6 +2,8 @@
 
 主 Agent 派发子任务时读本索引，按当前职责选择一份外部原文；已读且版本未变可复用。不把全库发送给子 Agent，不自动安装原生 Skill。库中有真正的上游原始 Skill/Prompt，独立保留在 `external/<owner>/<repo>/`，不是我们重新写的角色模板。
 
+**与用户历史 Prompt 的区别**：本目录 `external/` 仅保存第三方固定版本原文；用户过去让助手写过的通用 Prompt 已按 [历史资产清单](../../docs/Prompt_inventory.md) 去重，适合运行时触发的领域知识位于 [CodeBuddy Skills](../../.codebuddy/skills/)。不要把二者混入同一 catalog，也不在每轮同时加载。
+
 ## 按场景选择
 
 | 当前需要 | 选取的原始资源 | 采用边界 |

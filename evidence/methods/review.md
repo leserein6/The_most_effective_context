@@ -25,6 +25,15 @@
 
 没找到反例不等于证明全部正确。只有想象场景、没有代码路径或观察支撑，列为待验证风险，不当成确定缺陷。仅在验证某个命名风险需要时补查调用者/上下文，不无界扫描仓库。
 
+### 2.1 按代码特征加载语言/领域专项 Skill
+
+通用 Review 的需求轴、质量轴和证据门槛只在本页维护。CodeBuddy 提供相应 Skill 时，根据当前**真正触及的技术与风险**做最小选择：
+- **Go 代码**：按需读取 [go-review](../../.codebuddy/skills/go-review/SKILL.md)，重点补 Go 语义与并发/资源风险；
+- **tRPC-Go / 真实 RPC 链路**：在 Go Review 基础上，针对 RPC 部分再读取 [trpc-go-review](../../.codebuddy/skills/trpc-go-review/SKILL.md)；
+- **资金、账户、清结算等业务**：无论 Go/C++，按需读取 [financial-risk-review](../../.codebuddy/skills/financial-risk-review/SKILL.md)。
+
+只加载与当前变更相关的检查，不把三个 Skill 的全文当作每轮必读，也不把它们变成独立 Reviewer；同一根因只报告一次。用户侧缺少这些文件时继续本页通用审查，不假装已加载。所有 Finding 仍按本页的可达反例与证据要求判断。
+
 审查测试充分性时先按[充分性审查](../testing/adequacy.md)核对独立 oracle、测试方法与覆盖分母，再用[测试验收](../testing/acceptance.md)对照漏检、误拒与未验证项。
 
 ## 3. 检查证据和影响

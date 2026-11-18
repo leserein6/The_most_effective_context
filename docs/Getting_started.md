@@ -62,6 +62,10 @@ python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry 
 
 若需要在其他 Go/C++ 仓库跨项目使用，请按 [Agent 安装和调用说明](Agents.md) 将所选文件复制到 `~/.codebuddy/agents/`。新的阅读/调查角色只读，不自动修改代码。
 
+## 常用历史 Prompt 的 Skill 复用
+
+原来编写过的通用 Go Review、RPC Review、金融风险 Review 已整理为独立可选 Skill；其它源码带读、需求契约、Prompt 编写与故障调查尽量复用已有 Agent/Method。完整分类见 [历史 Prompt 清单](Prompt_inventory.md)，跨项目安装与 `/skills` 验证见 [Agents](Agents.md)。
+
 ## 8. Git
 
 自动保存是本地文件保存，不等于自动 commit。需要版本同步时，先检查 `git status` 与 diff，再明确要求 Agent 提交/推送。私密项目建议私有仓库；.pm-runtime、.env、CodeBuddy 本地配置已忽略。不要提交 API Key。
