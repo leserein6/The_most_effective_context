@@ -67,7 +67,7 @@ flowchart TD
 | project-management/History.md | 非活跃索引，按需读取 |
 | project-management/conventions/ | 用户确认后的公共积累 |
 | project-management/projects/状态/类型/ID/ | Project 权威数据 |
-| scripts/ | 实际文件操作、安装和演示 |
+| scripts/ | 项目管理、文件操作、安装及辅助校验工具 |
 | .pm-runtime/ | 本地锁、未完成事务、临时 payload；不入 Git |
 
 ## 单个 Project
