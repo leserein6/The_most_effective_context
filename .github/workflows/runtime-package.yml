@@ -1,0 +1,68 @@
+name: Build minimal Harness runtime
+
+on:
+  push:
+    branches:
+      - main
+      - codex/project-workspace-v1-20261117
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and verify whitelist distribution
+        run: |
+          python3 scripts/build_runtime.py --output dist/harness-runtime.zip
+          python3 scripts/build_runtime.py --output dist/harness-runtime.zip --verify
+      - name: Smoke test installing only the downloaded archive
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+          import tempfile
+          import zipfile
+
+          archive = pathlib.Path('dist/harness-runtime.zip').resolve()
+          with tempfile.TemporaryDirectory() as d:
+              tmp = pathlib.Path(d)
+              package = tmp / 'package'
+              package.mkdir()
+              with zipfile.ZipFile(archive) as z:
+                  z.extractall(package)
+              assert not (package / 'docs').exists()
+              assert not (package / 'tests').exists()
+              assert not (package / 'README.md').exists()
+              assert not (package / 'project-management/projects').exists()
+              for mode in ('workspace', 'project'):
+                  target = tmp / ('target-' + mode)
+                  if mode == 'project':
+                      target.mkdir()
+                      (target / 'README.md').write_text('Business documentation\n')
+                      (target / '.gitignore').write_text('business-ignore\n')
+                  command = [sys.executable, str(package / 'scripts/install.py'),
+                             '--target', str(target), '--mode', mode]
+                  subprocess.run(command + ['--apply'], check=True)
+                  pm_root = target if mode == 'workspace' else target / '.codebuddy/harness'
+                  subprocess.run([sys.executable, str(pm_root / 'scripts/pm.py'), 'doctor'], check=True)
+                  assert not (pm_root / 'docs').exists()
+                  assert not (pm_root / 'tests').exists()
+                  if mode == 'project':
+                      assert (target / 'README.md').read_text() == 'Business documentation\n'
+                      assert (target / '.gitignore').read_text() == 'business-ignore\n'
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harness-runtime
+          path: |
+            dist/harness-runtime.zip
+            dist/harness-runtime.zip.sha256
+          if-no-files-found: error
