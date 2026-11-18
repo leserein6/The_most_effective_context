@@ -40,11 +40,11 @@ def load_manifest(source):
         if raw in result:
             raise ValueError('Duplicate manifest path: ' + raw)
         result.append(raw)
-    required = {'agent.md', 'AGENTS.md', 'CODEBUDDY.md', 'scripts/pm.py', 'scripts/install.py', MANIFEST}
+    required = {'agent.md', 'AGENTS.md', 'CODEBUDDY.md', 'scripts/pm.py', 'evidence/README.md', 'project-management/README.md'}
     if not required.issubset(result):
         raise ValueError('Manifest is missing required Harness files')
-    if any(x.startswith(('tests/', 'evidence/evals/', 'project-management/projects/')) or x in ('.gitignore', '.env') for x in result):
-        raise ValueError('Manifest includes runtime or maintainer-only content')
+    if any(x.startswith(('docs/', 'tests/', 'evidence/evals/', 'project-management/projects/', 'examples/')) or x in ('.gitignore', '.env', 'README.md', 'scripts/install.py', MANIFEST) for x in result):
+        raise ValueError('Manifest includes maintainer-only or installation-only content')
     return result
 
 
