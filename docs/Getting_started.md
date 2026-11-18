@@ -60,6 +60,16 @@ python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry 
 
 自动保存是本地文件保存，不等于自动 commit。需要版本同步时，先检查 `git status` 与 diff，再明确要求 Agent 提交/推送。私密项目建议私有仓库；.pm-runtime、.env、CodeBuddy 本地配置已忽略。不要提交 API Key。
 
+## 开发需求的测试方法选择（普通用户可运行）
+
+在业务仓库先确认规格，按 [选择协议](../evidence/testing/selection.md) 编写输入。只想观察本仓库的独立示例，可以运行：
+
+```bash
+python3 scripts/testing_strategy.py --input evidence/testing/examples/strategy-input.json
+```
+
+结果 DRAFT_UNREVIEWED 是**候选方法**，不是通过的测试或覆盖率报告。随后阅读 [充分性审查](../evidence/testing/adequacy.md) 决定如何验证测试计划。用户安装不含 tests/ 与 evidence/evals/。
+
 ## 开发者试跑测试工程
 
 在完整开发副本中运行以下命令，输出目录每次使用新名称。用户安装包保留测试运行器和方法，示范工程位于开发测试目录。

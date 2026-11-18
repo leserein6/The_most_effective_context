@@ -35,10 +35,10 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 ## 在 Mac 上使用
 
-用户可以只拉取使用 Harness 需要的工作树，省去开发测试和模型评测用例。在终端执行以下命令（PR 试用时在 `git clone` 后加 `-b codex/project-workspace-v1-20261117`）：
+用户可以只拉取使用 Harness 需要的工作树，省去开发测试和模型评测用例。**当前测试工程仍处于 PR #3 分支（其基线为 PR #2 → PR #1），main 尚未包含这些改动。** 要试用本次改造，在终端执行：
 
 ```bash
-git clone --depth 1 --filter=blob:none --sparse https://github.com/leserein6/The_most_effective_context.git
+git clone --depth 1 --filter=blob:none --sparse -b codex/testing-methodology-v2-20261118 https://github.com/leserein6/The_most_effective_context.git
 cd The_most_effective_context
 git sparse-checkout set --no-cone '/*' '!/tests/' '!/evidence/evals/' '!/.github/workflows/harness-tests.yml'
 python3 scripts/pm.py doctor

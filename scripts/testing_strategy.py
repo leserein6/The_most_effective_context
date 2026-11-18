@@ -14,7 +14,7 @@ FEATURES = {
     "input-domain", "boolean-decision", "stateful", "persistence", "concurrency",
     "remote-failure", "api-compatibility", "config-interaction", "algorithmic",
     "untrusted-input", "migration", "security", "performance", "recovery",
-    "critical-decision", "weak-tests", "user-journey",
+    "critical-decision", "weak-tests", "user-journey", "accessibility",
 }
 IMPACTS = {"low", "medium", "high", "critical"}
 
@@ -38,6 +38,7 @@ RULES = (
     ("critical-decision", ("DT", "MCDC", "REV"), "Review boolean independence for critical decisions."),
     ("weak-tests", ("MUT",), "Check whether representative faulty implementations are rejected."),
     ("user-journey", ("SC",), "Observe the user-visible flow and error/recovery path."),
+    ("accessibility", ("ACC",), "Use the applicable accessibility standard and user tasks."),
 )
 LIMITS = {
     "EP": "Partitions can omit relevant distinctions.",
@@ -63,6 +64,7 @@ LIMITS = {
     "REV": "Review is evidence only for its documented scope.",
     "MUT": "Mutation score concerns only the selected non-equivalent mutants.",
     "SC": "A few journeys do not cover all internal states.",
+    "ACC": "Automated checks alone do not establish real usability or accessibility.",
 }
 
 

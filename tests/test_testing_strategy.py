@@ -48,6 +48,10 @@ class StrategyTests(unittest.TestCase):
         one = self.run_plan(claim(impact="low", features=["input-domain"]))[0]
         self.assertEqual([x["id"] for x in one["method_candidates"]], ["EP", "BVA"])
 
+    def test_accessibility_routes_to_accessibility_evaluation(self):
+        one = self.run_plan(claim(impact="medium", features=["accessibility"]))[0]
+        self.assertEqual([m["id"] for m in one["method_candidates"]], ["ACC"])
+
     def test_missing_oracle_is_explicitly_unresolved(self):
         one = self.run_plan(claim(oracle=""))[0]
         self.assertTrue(any("oracle:" in text for text in one["unresolved"]))
