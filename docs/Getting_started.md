@@ -56,7 +56,13 @@ python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry 
 
 已有 README.md、.gitignore 或其他不同内容会拒绝，需先决定如何合并；不要删除原文件来强行安装。安装到全新目录最直接。本脚本不会清空目录、强行替换用户规则或设置模型凭据。
 
-## 7. Git
+## 7. 日常 Go/C++ Agent（按需启用）
+
+默认在本项目的 `.codebuddy/agents/` 内提供 source-tutor、bug-investigator、change-impact、test-planner；在 CLI 里输入 `/agents` 查看。它们是主 Agent 的可选专业能力，不改变 Project/Task/Mode 的持久化方式。
+
+若需要在其他 Go/C++ 仓库跨项目使用，请按 [Agent 安装和调用说明](Agents.md) 将所选文件复制到 `~/.codebuddy/agents/`。新的阅读/调查角色只读，不自动修改代码。
+
+## 8. Git
 
 自动保存是本地文件保存，不等于自动 commit。需要版本同步时，先检查 `git status` 与 diff，再明确要求 Agent 提交/推送。私密项目建议私有仓库；.pm-runtime、.env、CodeBuddy 本地配置已忽略。不要提交 API Key。
 

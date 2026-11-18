@@ -24,6 +24,7 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 - [总体设计](docs/Architecture.md)
 - [每轮Task与二级方法索引](docs/Task_routing.md)
+- [常用 CodeBuddy Sub-Agent（Go/C++ 源码带读、定位、影响分析、测试设计）](docs/Agents.md)
 - [外部 Skill / Prompt 资源库](evidence/prompts/README.md)
 - [协议职责与去重](docs/Protocol_boundaries.md)
 - [已确认需求](docs/Requirements.md)

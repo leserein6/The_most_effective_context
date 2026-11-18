@@ -12,6 +12,8 @@
 | 已有异常、失败测试或错误行为 | [debug](../../evidence/methods/debug.md)，定位后再实施 |
 | 目标/边界清楚，可以实际修改 | [execute](../../evidence/methods/execute.md) |
 
+可选调用 [change-impact](../../.codebuddy/agents/change-impact.md) 进行改前只读影响分析，或 [bug-investigator](../../.codebuddy/agents/bug-investigator.md) 只读收集根因证据；它们不承担修改。只有调查复杂且独立委派确实能减少上下文负担时才使用，不机械强制。
+
 值得独立委派且工具可用 → [orchestrate](../../evidence/methods/orchestrate.md)；具体任务仍执行对应方法，不是只有调度没有产物。
 改动完成并准备声明成功 → [verify](../../evidence/methods/verify.md)；需要独立审查再读 [review](../../evidence/methods/review.md)。这些都按实际阶段补载，不一开始全部读取。
 

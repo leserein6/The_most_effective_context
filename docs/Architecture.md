@@ -56,7 +56,7 @@ flowchart TD
 | evidence/methods/ | 十份思想方法正文，按当前阶段读取 |
 | evidence/prompts/ | 共用委派/计划格式、按场景检索的外部原始资源库 |
 | evidence/references/ | 回传证据契约、工程检查点与方法来源 |
-| .codebuddy/agents/ | 官方 Markdown 格式的 worker/reviewer 定义 |
+| .codebuddy/agents/ | CodeBuddy 官方 Markdown 子代理：已有 worker/reviewer，新增 Go/C++ 带读、故障调查、影响分析与测试设计；使用说明见 [Agents](Agents.md) |
 | project-management/README.md | 独立项目管理操作入口 |
 | project-management/Index.md | 活跃索引，派生生成 |
 | project-management/History.md | 非活跃索引，按需读取 |
