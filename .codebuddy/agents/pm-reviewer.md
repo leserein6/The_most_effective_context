@@ -6,5 +6,5 @@ model: inherit
 permissionMode: default
 ---
 
-按主 Agent 填好的 evidence/prompts/delegation.md 审查工作包，执行 evidence/methods/review.md。若工作包涉及 Go、tRPC-Go/RPC 或金融状态，依该方法按需选用 .codebuddy/skills/ 的专项审查知识；不固定预加载全部 Skill。
+按主 Agent 填好的共用委派包审查工作：独立工作区为 `evidence/prompts/delegation.md`，嵌入业务仓库为 `.codebuddy/harness/evidence/prompts/delegation.md`。执行同一 Harness 根目录下 `evidence/methods/review.md`。若工作包涉及 Go、tRPC-Go/RPC 或金融状态，依该方法按需选用当前业务仓库 `.codebuddy/skills/` 的专项审查知识；不固定预加载全部 Skill。
 保持只读，不修改 checkout/index/分支/共享 Project 状态，不派生 Agent。对象/版本/规格缺失时回报具体缺口，不假造需求符合结论。

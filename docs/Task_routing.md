@@ -2,13 +2,15 @@
 
 ## 规则放在哪里
 
-每轮Task锚定写在根 agent.md 的第一节，并以 HARD GATE 形式约束：首次用户可见回复的第一行固定为 `Project：<id>｜本轮 Task（类型）：…｜Mode：<mode>`。Project ID 必须真实存在且为 active；History 仅用于明确恢复 archived 或重开 completed，并需用户确认。会话首轮可豁免，第二轮起强制；`Project：待确认` 仅限提出新建/接续选项的当轮，下一轮必须落成真实 active ID 或用户确认的例外。Task 类型为 answer/proposal/change/assess/learn，Mode 为 clarify/research/plan/execute/review/learn/orchestrate。工具回调不新建Task，用户纠正更新目标，Task不独立落盘。
+Project、Task、Mode 的**唯一执行规则**见 [agent.md](../agent.md#每轮先锚定-task)，不在此页逐字重复。
+
+关键边界：Project ID 必须是真实 active 项目；History 只用于经确认的归档恢复/完成重开；`待确认` 仅用于提出具体选择的当轮；之后需真实 active Project 或用户确认且写明理由的“无 Project”例外。没有真实 Project 时不运行 checkpoint，不能为满足显示要求创建虚构项目。
 
 Task锚定与一级路由都属于入口职责；Project归属与本轮Task结果分开处理。
 
 ## 实际读取链
 
-AGENTS.md 薄适配 → agent.md（通用规则与一级五类交付）→ entry/routes/对应类型.md（二级场景路由）→ evidence/methods/当前方法.md → 必要Prompt/参考。委派额外进入 [Prompt 库](../evidence/prompts/README.md) 的场景索引，选一份外部原文，再填共用工作包；子 Agent 只读工作包指向的当前方法。
+CODEBUDDY.md（CodeBuddy 优先）/ AGENTS.md（兼容） → agent.md（唯一规范正文）→ entry/routes/对应类型.md（二级场景路由）→ evidence/methods/当前方法.md → 必要Prompt/参考。委派额外进入 [Prompt 库](../evidence/prompts/README.md) 的场景索引，选一份外部原文，再填共用工作包；子 Agent 只读工作包指向的当前方法。
 
 Project Index与项目状态是另一条数据加载线：每轮按用户要求检查Index，项目操作按需加载管理README。不会因为选了Task类型就新建Project或Task数据库。
 

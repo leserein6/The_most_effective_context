@@ -1,5 +1,7 @@
 # 每轮持久化
 
+本协议仅在已锚定真实 active Project 后执行。尚在归属澄清或用户明确确认“不归属任何 Project”的例外时，不能凭空创建状态或调用 checkpoint；允许按本轮授权回答，但须说明未做 Project 持久化。例外不能变成永久的伪 Project ID。
+
 用户未明确改变 Project 状态时，完成本轮 Task 不等于 completed。每轮回复前由主 Agent 汇总一次写入；子 Agent 不写共享项目状态。
 
 1. 首次 resume 保留 token 和读到的状态基线。

@@ -42,6 +42,10 @@ flowchart TD
 
 测试运行器 PASS 只证实本轮已列入计划的执行情况，**不能替代规格确认或测试设计充分性审查**。参见 [测试方法选择](../evidence/testing/selection.md) 与 [充分性审查](../evidence/testing/adequacy.md)。
 
+## 安装布局与入口边界
+
+独立 Workspace 使用根目录的 `CODEBUDDY.md → agent.md`；嵌入已有业务仓库时，根 `CODEBUDDY.md`（或仅有的 `AGENTS.md`）通过显式合并引用 `.codebuddy/harness/agent.md`。其余管理协议、脚本与项目状态保存在 `.codebuddy/harness/`，项目级 Agent/Skill 保留在业务仓库 `.codebuddy/agents/` 和 `.codebuddy/skills/`。这是部署路径变化，不新建第二套 Project/Task/Mode。安装器白名单与真实用户数据必须隔离。
+
 ## 维护与交付边界
 
 本仓库只版本化 Harness 运行所需协议、方法与工具。维护者测试/评测材料和临时验证日志不提交到本仓库；业务测试代码、CI 和运行报告由实际业务仓库管理。

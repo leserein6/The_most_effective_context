@@ -27,7 +27,7 @@
 
 ## 使用方式
 
-CodeBuddy 官方支持 YAML frontmatter 的 Markdown 子代理；项目级目录为 `.codebuddy/agents/`，用户级为 `~/.codebuddy/agents/`。前者在**当前 CodeBuddy 工作目录对应的项目**中可用，不能因为这个 Harness 仓库存在就自动应用到所有其他源码仓库。
+CodeBuddy 官方支持 YAML frontmatter 的 Markdown 子代理；**独立模式**中直接使用仓库下的配置，**嵌入模式**中安装器将 Agent/Skill 放在业务仓库的 `.codebuddy/`，协议在 `.codebuddy/harness/`。主 Agent 应从实际入口 `@.codebuddy/harness/agent.md` 继续加载。项目级目录为 `.codebuddy/agents/`，用户级为 `~/.codebuddy/agents/`。前者在**当前 CodeBuddy 工作目录对应的项目**中可用，不能因为这个 Harness 仓库存在就自动应用到所有其他源码仓库。
 
 **只在此 Harness 工作区使用**：在该目录启动 CodeBuddy，输入 `/agents`，检查角色已被发现。可以明确说：
 

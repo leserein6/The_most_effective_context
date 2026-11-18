@@ -7,8 +7,9 @@ an explicit entry merge. No network or implicit Git operations.
 import argparse
 import json
 import os
+import posixpath
+import re
 from pathlib import Path, PurePosixPath
-import shutil
 import sys
 import tempfile
 
@@ -58,6 +59,28 @@ def ensure_safe(path, boundary):
             break
 
 
+
+def adapt_markdown_links(rel, data, target):
+    """Relocate only links to project-level Agent/Skill files in embedded layout."""
+    if not rel.endswith('.md'):
+        return data
+    text = data.decode('utf-8')
+
+    def rewrite(match):
+        uri, fragment = match.group(1), match.group(2) or ''
+        if uri.startswith(('/', '#')) or '://' in uri:
+            return match.group(0)
+        resolved = posixpath.normpath(posixpath.join(posixpath.dirname(rel), uri))
+        if not resolved.startswith(('.codebuddy/agents/', '.codebuddy/skills/')):
+            return match.group(0)
+        actual = target / resolved
+        from_dir = target / '.codebuddy/harness' / posixpath.dirname(rel)
+        relative = os.path.relpath(actual, from_dir).replace(os.sep, '/')
+        return '](' + relative + fragment + ')'
+
+    return re.sub(r'\]\(([^)#]+)(#[^)]*)?\)', rewrite, text).encode('utf-8')
+
+
 def plan_install(source, target, mode, merge_entry):
     paths = load_manifest(source)
     if source == target or source in target.parents or target in source.parents:
@@ -80,7 +103,10 @@ def plan_install(source, target, mode, merge_entry):
             dest = target / '.codebuddy/harness' / rel
         else:
             dest = target / rel
-        plan.append((dest, src.read_bytes(), src.stat().st_mode & 0o777))
+        data = src.read_bytes()
+        if mode == 'project' and rel.startswith(('docs/', 'evidence/', 'entry/')):
+            data = adapt_markdown_links(rel, data, target)
+        plan.append((dest, data, src.stat().st_mode & 0o777))
 
     if mode == 'project':
         memory = target / 'CODEBUDDY.md'

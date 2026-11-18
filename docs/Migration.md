@@ -29,7 +29,7 @@
 
 ## CLI 入口
 
-agent.md 继续是规范入口；新增 AGENTS.md 仅转引它，供支持 AGENTS.md 的 CLI 自动发现。不提供另一个 CODEBUDDY.md 规则文件。若客户端没加载适配，明确要求读取 agent.md。
+agent.md 继续是规范执行入口；`CODEBUDDY.md` 通过 `@agent.md` 导入它，`AGENTS.md` 仅作兼容其他 CLI 的薄适配。不维护两套工作流。CodeBuddy 对两个入口同时存在时优先读取 CODEBUDDY.md；需在 CLI `/memory` 核验。
 
 ## 验证
 

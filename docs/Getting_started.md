@@ -45,16 +45,32 @@ codebuddy
 
 使用 CodeBuddy `/agents` 检查 pm-worker、pm-reviewer 是否被识别。实际是否可调用依赖你的 CLI 版本和可用模型；不可用必须报告，不假装完成。不要为了本包开启 bypassPermissions。
 
-## 6. 装入现有工作区（可选）
+## 6. 发行安装（可选）
 
-推荐先用仓库目录验收。安装器默认预览，遇同名不同内容拒绝覆盖；已有 agent.md 可以显式追加入口。
+安装器从固定 `install-manifest.json` 的明确文件列表复制，**不会复制源项目已有 Project、日志、`.env`、维护者测试或原 `.gitignore`**，默认只预览。
+
+**装到已有业务仓库**（推荐，`--mode project` 默认值）：
 
 ```bash
-python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry
-python3 scripts/install.py --target /绝对路径/你的workspace --merge-entry --apply
+python3 scripts/install.py --target /绝对路径/业务仓库 --mode project --merge-entry
+python3 scripts/install.py --target /绝对路径/业务仓库 --mode project --merge-entry --apply
 ```
 
-已有 README.md、.gitignore 或其他不同内容会拒绝，需先决定如何合并；不要删除原文件来强行安装。安装到全新目录最直接。本脚本不会清空目录、强行替换用户规则或设置模型凭据。
+业务仓库根目录的 `README.md`、`.gitignore` 和 `tests/` 原样保留。Harness 协议/Project 状态安装在 `.codebuddy/harness/`，CodeBuddy Agent/Skill 则进入根目录 `.codebuddy/agents/` 和 `.codebuddy/skills/`。若目标已有 `CODEBUDDY.md`，仅在 `--merge-entry` 时追加可识别的入口；若只有 `AGENTS.md` 则仅追加到它；若两者都没有则创建 `CODEBUDDY.md`。原内容不被替换。使用 CLI 的 `/memory` 检查实际入口加载。
+
+**全新、单独的 Harness Workspace**：
+
+```bash
+python3 scripts/install.py --target /绝对路径/全新空目录 --mode workspace
+python3 scripts/install.py --target /绝对路径/全新空目录 --mode workspace --apply
+```
+
+要求目标为空；生成受限 `.gitignore`（仅忽略本 Harness 运行产物）和空白 Project Index/History。不会带出源仓库自己的 Project 数据。
+
+嵌入安装时，文档中指向 Agent/Skill 的 Markdown 相对链接会自动适配业务仓库的 `.codebuddy/agents/` 与 `.codebuddy/skills/` 位置；不创建重复副本。
+
+若同名文件内容不一致，安装器中止而不是覆盖；再次安装相同版本应没有新改动。**安装新版本到已配置的目标时，需要先审阅并人工合并真实冲突，不等同自动升级。** 运行前检查预览，出现错误先保留现场。装好后在目标执行 `python3 .codebuddy/harness/scripts/pm.py doctor`（嵌入模式）或 `python3 scripts/pm.py doctor`（独立模式）。
+
 
 ## 7. 日常 Go/C++ Agent（按需启用）
 

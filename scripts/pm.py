@@ -149,6 +149,10 @@ class Store:
         for p in sorted(path.rglob('*')):
             self.guarded(p)
             rel = p.relative_to(path).as_posix()
+            # Archived logs are immutable provenance checked by doctor, not per-turn mutable state.
+            # Exclude their potentially large contents from optimistic-lock tokens.
+            if rel.startswith('logs/archive/'):
+                continue
             if (rel.startswith('work/') or rel.startswith('source/')) and rel != 'source/INDEX.md':
                 continue
             if p.is_file():
@@ -474,27 +478,79 @@ def run(a):
             return {'promoted': title, 'token': s.token(p)}
         if a.command == 'doctor':
             errors = []
-            for p, m in s.projects():
+            # Detect orphan project directories that projects() cannot discover.
+            project_root = s.base / 'projects'
+            if project_root.exists():
+                s.guarded(project_root)
+                for state_dir in sorted(project_root.iterdir()):
+                    s.guarded(state_dir)
+                    if state_dir.name not in STATES or not state_dir.is_dir():
+                        errors.append('Unexpected project status directory: ' + str(state_dir))
+                        continue
+                    for type_dir in sorted(state_dir.iterdir()):
+                        s.guarded(type_dir)
+                        if type_dir.name not in TYPES or not type_dir.is_dir():
+                            errors.append('Unexpected project type directory: ' + str(type_dir))
+                            continue
+                        for child in sorted(type_dir.iterdir()):
+                            s.guarded(child)
+                            if child.name == '.gitkeep':
+                                continue
+                            if not child.is_dir() or not (child / 'project.md').is_file():
+                                errors.append('Incomplete project directory: ' + str(child))
+            try:
+                projects = s.projects()
+            except (ValueError, KeyError, TypeError, OSError) as exc:
+                errors.append('Project metadata invalid: ' + str(exc))
+                projects = []
+            for p, m in projects:
                 for name in ('definition.md', 'state.md', 'acceptance.md', 'decisions.md', 'notes.md', 'source/INDEX.md', 'logs/current.md', 'logs/summary.md', 'logs/receipts.md'):
                     if not (p / name).is_file():
                         errors.append(str(p / name) + ' missing')
                 for f in p.rglob('*'):
                     s.guarded(f)
-                # Validate provenance hashes for every archived block referenced in summary.
-                summary = (p / 'logs/summary.md').read_text() if (p / 'logs/summary.md').exists() else ''
-                for fname, digest in re.findall(r'\]\(archive/([^)]*)\)\n\nSHA256: ([0-9a-f]{64})', summary):
-                    f = s.guarded(p / 'logs/archive' / fname)
-                    if not f.exists() or hashlib.sha256(f.read_bytes()).hexdigest() != digest:
-                        errors.append('Archive integrity failure: ' + str(f))
-            # Compare generated indexes without modifying disk.
+                summary_file = p / 'logs/summary.md'
+                summary = summary_file.read_text(encoding='utf-8') if summary_file.exists() else ''
+                archive = p / 'logs/archive'
+                references = re.findall(
+                    r'原始日志：\[[^\]]+\]\(archive/([^/)\n]+\.md)\)\s*\n\s*SHA256:\s*([0-9a-f]{64})',
+                    summary)
+                # Missing/corrupted links must not silently evade hash checking.
+                if (summary.count('原始日志：') != len(references)
+                        or summary.count('SHA256:') != len(references)
+                        or len({name for name, _ in references}) != len(references)):
+                    errors.append('Malformed or duplicate archive references: ' + str(summary_file))
+                listed = set()
+                for fname, digest in references:
+                    listed.add(fname)
+                    if not re.fullmatch(r'[0-9]{8}T[0-9]{6}-[0-9a-f]{8}\.md', fname):
+                        errors.append('Invalid archive filename: ' + fname)
+                        continue
+                    path = s.guarded(archive / fname)
+                    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                        errors.append('Archive integrity failure: ' + str(path))
+                if archive.exists():
+                    s.guarded(archive)
+                    actual = set()
+                    for path in archive.iterdir():
+                        s.guarded(path)
+                        if not path.is_file():
+                            errors.append('Invalid archive entry: ' + str(path))
+                        else:
+                            actual.add(path.name)
+                    for missing in sorted(listed - actual):
+                        errors.append('Missing archive: ' + missing)
+                    for unreferenced in sorted(actual - listed):
+                        errors.append('Unreferenced archive: ' + unreferenced)
             class Compare:
                 def write(self, path, data):
                     if not path.exists() or path.read_text() != data:
                         errors.append(str(path) + ' stale or missing; run init to rebuild')
-            s.indexes(Compare())
+            if len(projects) or not any('Project metadata invalid' in e for e in errors):
+                s.indexes(Compare())
             if errors:
                 raise ValueError('\n'.join(errors))
-            return {'ok': True, 'projects': len(s.projects()), 'codebuddy_installed': shutil.which('codebuddy') is not None,
+            return {'ok': True, 'projects': len(projects), 'codebuddy_installed': shutil.which('codebuddy') is not None,
                     'agent_behavior_verified': False}
         if a.command == 'recover':
             if not a.rollback:

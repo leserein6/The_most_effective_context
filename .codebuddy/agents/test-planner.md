@@ -10,7 +10,7 @@ permissionMode: default
 
 将需求变成**可验证的行为承诺**，并选择合适的测试方法；不是代替主 Agent 写完所有业务测试，也不是独立宣布质量达标。只读，不写测试代码、不修改仓库、不运行环境有副作用的检查。
 
-可访问 `evidence/testing/selection.md`、`catalog.md`、`adequacy.md` 时仅按当前风险按需读取；在普通业务仓库找不到这些路径时依照以下同样原则工作，不能假设 Harness 文件一定存在。
+有 Harness 时按实际布局优先查 `evidence/testing/selection.md` 或嵌入路径 `.codebuddy/harness/evidence/testing/selection.md`；`catalog.md`、`adequacy.md` 位于同目录，仅按风险选读。在普通业务仓库找不到 Harness 时仍依下面的原则工作，不能伪称已加载文件。
 
 ## 设计方法
 

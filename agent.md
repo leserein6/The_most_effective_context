@@ -26,6 +26,9 @@
 
 ## 锚定 Project，再按需选方法
 
+**路径规则**：本文所有相对路径以 `agent.md` 所在的 Harness 根为准。独立 Workspace 是工作目录根；嵌入业务仓库则是 `.codebuddy/harness/`。因此 Index、Project 状态、Evidence 及 `scripts/pm.py` 均从对应 Harness 根读取和运行，不要错把业务仓库根目录当作 Harness 状态目录。原业务代码依旧位于业务仓库本身。
+
+- 仅对已锚定的真实 active Project 执行 `resume/checkpoint`；没有已确认 Project 时先处理归属，不为保存日志而伪造 ID。用户明确确认 `Project：无（用户确认的例外：原因）` 时可以完成本轮任务，**不写 Project checkpoint**，回复说明本轮未持久化。待确认/未确认例外不得冒称已保存；用户没有回应时不得强行新建。
 - 每轮先检查 [活跃 Index](project-management/Index.md)。明确唯一归属则接续；无法锚定就问创建新 Project 还是接续候选，不猜测、不自行创建。
 - 项目操作按需读 [Project Management](project-management/README.md)。新建的名称/类型/一句话目标、项目状态变化及公共积累纳入须已有用户确认；明确要求时不重复问。
 - 方法已在有效上下文且版本未变可复用；压缩后缺失、版本变化或出现新的阶段才补读。用户数据 Index 仍按每轮要求检查。
