@@ -15,3 +15,6 @@ evidence/evals/
 scripts/demo.py
 docs/Test_results.md
 evidence/testing/examples/strategy-input.json
+
+# Release bundles are generated; never commit them
+dist/
