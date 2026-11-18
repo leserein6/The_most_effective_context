@@ -69,7 +69,9 @@ python3 scripts/install.py --target /绝对路径/全新空目录 --mode workspa
 
 嵌入安装时，文档中指向 Agent/Skill 的 Markdown 相对链接会自动适配业务仓库的 `.codebuddy/agents/` 与 `.codebuddy/skills/` 位置；不创建重复副本。
 
-若同名文件内容不一致，安装器中止而不是覆盖；再次安装相同版本应没有新改动。**安装新版本到已配置的目标时，需要先审阅并人工合并真实冲突，不等同自动升级。** 运行前检查预览，出现错误先保留现场。装好后在目标执行 `python3 .codebuddy/harness/scripts/pm.py doctor`（嵌入模式）或 `python3 scripts/pm.py doctor`（独立模式）。
+若同名文件内容不一致，安装器中止而不是覆盖；再次安装相同版本应没有新改动。如果目标已有旧版根目录式 Harness（`agent.md` + `project-management/Index.md`），安装器会拒绝并行再装一套；需要先备份旧 Project 数据、制定迁移方案并核对状态，不会隐式迁移。
+
+**安装新版本到已配置的目标时，需要先审阅并人工合并真实冲突，不等同自动升级。** 运行前检查预览，出现错误先保留现场。装好后在目标执行 `python3 .codebuddy/harness/scripts/pm.py doctor`（嵌入模式）或 `python3 scripts/pm.py doctor`（独立模式）。
 
 
 ## 7. 日常 Go/C++ Agent（按需启用）

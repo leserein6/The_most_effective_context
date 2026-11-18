@@ -85,6 +85,8 @@ def plan_install(source, target, mode, merge_entry):
     paths = load_manifest(source)
     if source == target or source in target.parents or target in source.parents:
         raise ValueError('Source and target must be separate directory trees')
+    if mode == 'project' and (target / 'agent.md').exists() and (target / 'project-management/Index.md').exists():
+        raise ValueError('Legacy root-level Harness detected; migrate its Project data before embedded installation')
     if mode == 'workspace' and target.exists() and any(target.iterdir()):
         raise ValueError('Workspace mode requires an empty target. Use --mode project for an existing repository.')
 
