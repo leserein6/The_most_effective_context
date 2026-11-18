@@ -31,18 +31,17 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 ## 在 Mac 上使用
 
-已有仓库可先 `git pull`；首次使用：
+用户可以只拉取使用 Harness 需要的工作树，省去开发测试和模型评测用例。在终端执行以下命令（PR 试用时在 `git clone` 后加 `-b codex/project-workspace-v1-20261117`）：
 
 ```bash
-git clone https://github.com/leserein6/The_most_effective_context.git
+git clone --depth 1 --filter=blob:none --sparse https://github.com/leserein6/The_most_effective_context.git
 cd The_most_effective_context
+git sparse-checkout set --no-cone '/*' '!/tests/' '!/evidence/evals/'
 python3 scripts/pm.py doctor
-python3 -m unittest discover -s tests -v
-python3 scripts/demo.py
 codebuddy
 ```
 
-需要 Python 3.9+ 和现有 CodeBuddy 账号。无需安装第三方 Python 包。
+后续在该目录执行 `git pull` 会沿用本地稀疏检出设置。已有完整开发副本的用户也可直接用安装器，它会跳过测试目录。需要 Python 3.9+ 和 CodeBuddy。开发者使用普通 `git clone` 获取完整仓库，在源码目录运行 `python3 -m unittest discover -s tests -v`。
 
 首次输入：
 

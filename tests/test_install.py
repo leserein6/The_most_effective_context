@@ -18,9 +18,14 @@ class InstallTests(unittest.TestCase):
             preview = subprocess.run(args, capture_output=True, text=True)
             self.assertEqual(preview.returncode, 0, preview.stderr)
             self.assertFalse((target / 'scripts').exists())
+            for directory in ('tests/', 'evidence/evals/'):
+                self.assertNotIn('CREATE ' + directory, preview.stdout)
             result = subprocess.run(args + ['--apply'], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(entry.read_text().startswith('# Existing user rules\n'))
+            for directory in ('tests', 'evidence/evals'):
+                self.assertFalse((target / directory).exists())
+            self.assertTrue((target / 'evidence/methods/verify.md').is_file())
             original = entry.read_text()
             result = subprocess.run(args + ['--apply'], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)

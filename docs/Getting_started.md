@@ -2,7 +2,7 @@
 
 ## 1. 环境检查
 
-拉取仓库后，用终端进入 The_most_effective_context 目录（输入 `cd ` 后可把 Finder 中的文件夹拖入终端，再回车）。
+按 [README 的用户拉取命令](../README.md#在-mac-上使用) 获取工作树，再在 The_most_effective_context 目录检查环境。
 
 ```bash
 python3 --version
@@ -15,11 +15,9 @@ Python 需要 3.9+。不需 pip 安装第三方包；已有 CodeBuddy 和模型�
 
 ```bash
 python3 scripts/pm.py doctor
-python3 -m unittest discover -s tests -v
-python3 scripts/demo.py
 ```
 
-doctor 检查项目目录和索引结构、归档完整性；tests 运行临时目录中的行为检查；demo 在独立临时目录跑三种项目与一个真实 Python 产物，不产生真实用户项目。
+doctor 检查项目目录、索引和归档完整性。
 
 ## 3. 启动 CodeBuddy
 

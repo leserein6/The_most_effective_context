@@ -24,6 +24,8 @@ def main():
     conflicts = []
     for f in sorted(source.rglob('*')):
         rel = f.relative_to(source)
+        if rel.parts[0] == 'tests' or rel.parts[:2] == ('evidence', 'evals'):
+            continue
         if any(part in ('.pm-runtime', '__pycache__', '.git') for part in rel.parts) or f.suffix == '.pyc':
             continue
         if f.is_symlink():
