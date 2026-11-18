@@ -18,6 +18,9 @@ import uuid
 TYPES = ('development', 'learning', 'one_off')
 STATES = ('active', 'archived', 'completed')
 MODES = ('clarify', 'research', 'plan', 'execute', 'review', 'learn', 'orchestrate')
+WI_STATES = ('pending', 'in_progress', 'blocked', 'in_review', 'completed')
+WI_KEYS = {'id', 'title', 'status', 'depends_on', 'acceptance', 'evidence', 'blocker', 'next_action', 'created_at', 'updated_at'}
+WI_UPDATE_KEYS = {'op', 'id', 'title', 'status', 'depends_on', 'acceptance', 'evidence', 'blocker', 'next_action'}
 START = '# Project metadata\n\n```json\n'
 END = '\n```\n'
 
@@ -247,17 +250,205 @@ def bump(tx, path, meta):
     return meta
 
 
-def log_entry(mode, operations, evidence, outcome, turn):
+def log_entry(mode, operations, evidence, outcome, turn, work_item_ids=None):
     return '\n## {} | {} | {}\n\n操作流水：\n{}\n\n证据：\n{}\n\n结果：{}\n'.format(
         now(), turn, mode, '\n'.join('- ' + x for x in operations),
-        '\n'.join('- [{}] {} — {}'.format(e['kind'], e['claim'], e['source']) for e in evidence) or '- 未提供', outcome)
+        '\n'.join('- [{}] {} — {}'.format(e['kind'], e['claim'], e['source']) for e in evidence) or '- 未提供',
+        outcome + ('\n关联工作项：' + ', '.join(work_item_ids) if work_item_ids else ''))
+
+
+
+def work_item_id(value):
+    if not isinstance(value, str) or not re.fullmatch(r'WI-[0-9]{2,5}', value):
+        raise ValueError('Work Item ID must be WI-01 .. WI-99999')
+    return value
+
+
+def checked_text_list(value, label, required=False):
+    if not isinstance(value, list) or (required and not value):
+        raise ValueError(label + ' must be a nonempty list' if required else label + ' must be a list')
+    return [text_field(v, label) for v in value]
+
+
+def checked_evidence(value):
+    if not isinstance(value, list):
+        raise ValueError('Work Item evidence must be a list')
+    for proof in value:
+        if not isinstance(proof, dict) or set(proof) != {'kind', 'claim', 'source'}:
+            raise ValueError('Work Item evidence requires kind, claim and source')
+        if proof['kind'] not in ('observed', 'cited', 'inferred', 'unverified'):
+            raise ValueError('Unknown Work Item evidence kind')
+        text_field(proof['claim'], 'evidence claim')
+        text_field(proof['source'], 'evidence source')
+    return value
+
+
+def validate_work_items(doc):
+    if not isinstance(doc, dict) or set(doc) != {'schema_version', 'items'} or doc['schema_version'] != 1:
+        raise ValueError('Invalid Work Item document schema')
+    if not isinstance(doc['items'], list):
+        raise ValueError('Work Items must be a list')
+    by_id = {}
+    for item in doc['items']:
+        if not isinstance(item, dict) or set(item) != WI_KEYS:
+            raise ValueError('Invalid Work Item fields')
+        wid = work_item_id(item['id'])
+        if wid in by_id:
+            raise ValueError('Duplicate Work Item: ' + wid)
+        by_id[wid] = item
+        text_field(item['title'], 'Work Item title', True)
+        if item['status'] not in WI_STATES:
+            raise ValueError('Invalid Work Item status: ' + wid)
+        checked_text_list(item['acceptance'], 'acceptance', required=True)
+        checked_evidence(item['evidence'])
+        deps = item['depends_on']
+        if not isinstance(deps, list) or any(not isinstance(v, str) for v in deps):
+            raise ValueError('Invalid Work Item dependencies: ' + wid)
+        for dep in deps:
+            work_item_id(dep)
+        if len(set(deps)) != len(deps) or wid in deps:
+            raise ValueError('Repeated/self dependency: ' + wid)
+        if item['blocker'] is not None:
+            text_field(item['blocker'], 'blocker')
+        if item['next_action'] is not None:
+            text_field(item['next_action'], 'next_action')
+        if not isinstance(item['created_at'], str) or not isinstance(item['updated_at'], str):
+            raise ValueError('Missing Work Item timestamps')
+        if item['status'] == 'blocked' and not item['blocker']:
+            raise ValueError('Blocked Work Item requires blocker: ' + wid)
+        if item['status'] != 'blocked' and item['blocker'] is not None:
+            raise ValueError('Stale blocker on non-blocked Work Item: ' + wid)
+        if item['status'] == 'completed':
+            if not any(p['kind'] == 'observed' for p in item['evidence']):
+                raise ValueError('Completed Work Item requires observed evidence: ' + wid)
+            if item['next_action'] is not None:
+                raise ValueError('Completed Work Item cannot have next_action: ' + wid)
+    for wid, item in by_id.items():
+        for dep in item['depends_on']:
+            if dep not in by_id:
+                raise ValueError('Unknown Work Item dependency: ' + wid + ' -> ' + dep)
+            if item['status'] in ('in_progress', 'in_review', 'completed') and by_id[dep]['status'] != 'completed':
+                raise ValueError('Unfinished dependency blocks Work Item: ' + wid + ' -> ' + dep)
+    visited = set()
+    visiting = set()
+
+    def visit(wid):
+        if wid in visiting:
+            raise ValueError('Work Item dependency cycle: ' + wid)
+        if wid in visited:
+            return
+        visiting.add(wid)
+        for dep in by_id[wid]['depends_on']:
+            visit(dep)
+        visiting.remove(wid)
+        visited.add(wid)
+
+    for wid in by_id:
+        visit(wid)
+    return doc
+
+
+def read_work_items(path):
+    if not path.exists():
+        return None  # Existing Projects predate Work Items; migrate lazily.
+    content = path.read_text(encoding='utf-8')
+    prefix = '# Project Work Items\n\n' + chr(96) * 3 + 'json\n'
+    suffix = '\n' + chr(96) * 3
+    if not content.startswith(prefix) or suffix not in content[len(prefix):]:
+        raise ValueError('Invalid work-items.md format: ' + str(path))
+    data, tail = content[len(prefix):].split(suffix, 1)
+    if tail.strip():
+        raise ValueError('Unexpected text after Work Item data')
+    return validate_work_items(json.loads(data))
+
+
+def encode_work_items(doc):
+    validate_work_items(doc)
+    return '# Project Work Items\n\n' + chr(96) * 3 + 'json\n' + dump(doc).rstrip() + '\n' + chr(96) * 3 + '\n'
+
+
+def updated_work_items(current, updates):
+    if not isinstance(updates, list):
+        raise ValueError('work_item_updates must be a list')
+    document = {'schema_version': 1, 'items': [dict(v) for v in (current or {'items': []})['items']]}
+    if not updates:
+        return document
+    by_id = {v['id']: v for v in document['items']}
+    changed_ids = set()
+    for change in updates:
+        if not isinstance(change, dict) or set(change) - WI_UPDATE_KEYS:
+            raise ValueError('Invalid Work Item update fields')
+        op = change.get('op')
+        wid = work_item_id(change.get('id'))
+        if wid in changed_ids:
+            raise ValueError('Work Item updated twice in one checkpoint: ' + wid)
+        changed_ids.add(wid)
+        if op == 'create':
+            if wid in by_id:
+                raise ValueError('Work Item already exists: ' + wid)
+            stamp = now()
+            entry = {
+                'id': wid,
+                'title': text_field(change.get('title'), 'title', True),
+                'status': change.get('status', 'pending'),
+                'depends_on': change.get('depends_on', []),
+                'acceptance': change.get('acceptance'),
+                'evidence': change.get('evidence', []),
+                'blocker': change.get('blocker'),
+                'next_action': change.get('next_action'),
+                'created_at': stamp, 'updated_at': stamp,
+            }
+            document['items'].append(entry)
+            by_id[wid] = entry
+        elif op == 'update':
+            if wid not in by_id:
+                raise ValueError('Unknown Work Item: ' + wid)
+            if not (set(change) - {'op', 'id'}):
+                raise ValueError('Work Item update has no changes: ' + wid)
+            entry = by_id[wid]
+            previous_status = entry['status']
+            for key in WI_UPDATE_KEYS - {'op', 'id', 'evidence'}:
+                if key in change:
+                    entry[key] = change[key]
+            if 'evidence' in change:
+                checked_evidence(change['evidence'])
+                entry['evidence'] = entry['evidence'] + change['evidence']
+            if entry['status'] == 'completed' and previous_status != 'completed':
+                if not any(p['kind'] == 'observed' for p in change.get('evidence', [])):
+                    raise ValueError('Completion transition needs new observed evidence: ' + wid)
+            if entry['status'] != 'blocked' and 'blocker' not in change:
+                entry['blocker'] = None
+            if entry['status'] == 'completed' and 'next_action' not in change:
+                entry['next_action'] = None
+            entry['updated_at'] = now()
+        else:
+            raise ValueError('Work Item operation must be create or update')
+    return validate_work_items(document)
+
+
+def work_item_overview(doc):
+    if doc is None:
+        return {'tracked': False, 'counts': {}, 'items': [],
+                'note': 'No structured Work Item plan yet; do not infer zero outstanding work'}
+    items = doc['items']
+    counts = {status: sum(item['status'] == status for item in items) for status in WI_STATES}
+    unfinished = [v for v in items if v['status'] != 'completed']
+    completed = [v for v in items if v['status'] == 'completed'][-10:]
+    view = unfinished + completed
+    return {'tracked': True, 'counts': counts,
+            'items': [{'id': v['id'], 'title': v['title'], 'status': v['status'],
+                       'depends_on': v['depends_on'], 'acceptance': v['acceptance'],
+                       'blocker': v['blocker'], 'next_action': v['next_action'],
+                       'latest_evidence': v['evidence'][-1:] } for v in view[:50]],
+            'truncated': len(view) > 50,
+            'file': 'work-items.md'}
 
 
 def checkpoint(s, a):
     p, m = s.get(a.id)
     s.check(p, a.expected)
     d = read_payload(a.payload)
-    unknown = set(d) - {'turn_id', 'mode', 'progress', 'next', 'open_questions', 'operations', 'evidence', 'outcome', 'decisions', 'notes', 'candidates', 'phase_end'}
+    unknown = set(d) - {'turn_id', 'mode', 'progress', 'next', 'open_questions', 'operations', 'evidence', 'outcome', 'decisions', 'notes', 'candidates', 'phase_end', 'work_item_ids', 'work_item_updates'}
     if unknown:
         raise ValueError('Unknown fields: ' + ', '.join(sorted(unknown)))
     turn = safe_id(d['turn_id'])
@@ -296,7 +487,22 @@ def checkpoint(s, a):
         text_field(decision['text'], 'decision')
         if decision['status'] != 'proposed':
             text_field(decision.get('user_evidence'), 'user_evidence')
+    updates = d.get('work_item_updates', [])
+    wi_path = p / 'work-items.md'
+    existing_wi = read_work_items(wi_path)
+    planned_wi = updated_work_items(existing_wi, updates)
+    refs = d.get('work_item_ids', [])
+    if not isinstance(refs, list) or any(not isinstance(v, str) for v in refs):
+        raise ValueError('work_item_ids must be a list')
+    if len(set(refs)) != len(refs):
+        raise ValueError('Duplicate work_item_ids')
+    known = {item['id'] for item in planned_wi['items']}
+    if any(work_item_id(wid) not in known for wid in refs):
+        raise ValueError('Turn Task references unknown Work Item')
+    refs = sorted(set(refs) | {v['id'] for v in updates})
     with Transaction(s) as tx:
+        if updates:
+            tx.write(wi_path, encode_work_items(planned_wi))
         tx.write(p / 'state.md', '# 当前状态\n\n## 进度\n' + d['progress'] + '\n\n## 未解决问题\n' +
                  '\n'.join('- ' + x for x in d.get('open_questions', [])) + '\n\n## 下一步\n' + d['next'] + '\n')
         for key, filename in [('notes', 'notes.md'), ('candidates', 'knowledge-candidates.md')]:
@@ -305,13 +511,13 @@ def checkpoint(s, a):
         for decision in decisions:
             append(tx, p / 'decisions.md', '\n- [{}] {}\n  用户依据：{}\n'.format(
                 decision['status'], decision['text'], decision.get('user_evidence', '待确认')))
-        append(tx, p / 'logs/current.md', log_entry(d['mode'], d['operations'], d['evidence'], d['outcome'], turn))
+        append(tx, p / 'logs/current.md', log_entry(d['mode'], d['operations'], d['evidence'], d['outcome'], turn, refs))
         append(tx, receipts, '\n- ' + turn + '\n')
         if d.get('phase_end'):
             tx.write(p / 'logs/compression-due.md', '阶段结束：请评估并生成有来源的摘要，再执行 compact。\n')
         bump(tx, p, m)
         s.indexes(tx)
-    return {'id': a.id, 'token': s.token(p), 'compression_due': compression_due(p)}
+    return {'id': a.id, 'token': s.token(p), 'compression_due': compression_due(p), 'work_item_ids': refs}
 
 
 def compression_due(p):
@@ -369,8 +575,12 @@ def run(a):
                 if len(content) > 12000:
                     files[name] += '\n[截断；需要时读取原文件剩余部分]\n'
             return {'path': str(p), 'token': s.token(p), 'files': files,
+                    'work_items': work_item_overview(read_work_items(p / 'work-items.md')),
                     'compression_due': compression_due(p),
                     'read_on_demand': ['notes.md', 'logs/current.md', 'logs/archive/', 'source/', 'work/']}
+        if a.command == 'work-items':
+            p, m = s.get(a.id)
+            return work_item_overview(read_work_items(p / 'work-items.md'))
         if a.command == 'checkpoint':
             return checkpoint(s, a)
         if a.command == 'describe':
@@ -504,6 +714,10 @@ def run(a):
                 errors.append('Project metadata invalid: ' + str(exc))
                 projects = []
             for p, m in projects:
+                try:
+                    read_work_items(p / 'work-items.md')
+                except (ValueError, KeyError, TypeError, OSError) as exc:
+                    errors.append('Work Items invalid: ' + str(p) + ': ' + str(exc))
                 for name in ('definition.md', 'state.md', 'acceptance.md', 'decisions.md', 'notes.md', 'source/INDEX.md', 'logs/current.md', 'logs/summary.md', 'logs/receipts.md'):
                     if not (p / name).is_file():
                         errors.append(str(p / name) + ' missing')
@@ -573,6 +787,7 @@ def parser():
     q.add_argument('--type', required=True, choices=TYPES)
     q.add_argument('--confirmed', action='store_true')
     q = sub.add_parser('resume'); q.add_argument('id')
+    q = sub.add_parser('work-items'); q.add_argument('id')
     for command in ('checkpoint', 'edit', 'status', 'compact', 'promote', 'describe'):
         q = sub.add_parser(command)
         q.add_argument('id'); q.add_argument('--expected', required=True)
