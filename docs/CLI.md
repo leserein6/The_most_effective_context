@@ -10,7 +10,8 @@
 | create | 用户确认后新建 |
 | resume ID | 恢复包、token、压缩提醒 |
 | describe ID | 更新名称/一句话目标，并刷新索引 |
-| checkpoint ID | 每轮保存当前状态、决策、知识、流水 |
+| checkpoint ID | 每轮保存当前状态、决策、知识、流水；可增量更新 Work Item |
+| work-items ID | 只读查询某 Project 的工作项概览 |
 | edit ID | 更新验收条件、知识或资料索引（项目状态迁移使用 status） |
 | status ID | 用户确认后迁移状态，保留 ID 和内容 |
 | compact ID | 原文归档、追加摘要、重置活跃日志 |
@@ -47,10 +48,14 @@ python3 scripts/pm.py promote todo-cli --expected 实际TOKEN --title '可复用
 | open_questions / notes / candidates | 可选字符串数组 |
 | decisions | 可选；status 为 proposed/confirmed/superseded；text；确认或失效需 user_evidence |
 | phase_end | 可选布尔值，重要阶段结束时触发压缩判断 |
+| work_item_ids | 可选，当前 Turn Task 关联的 WI-ID 数组 |
+| work_item_updates | 可选，WI 创建/更新操作数组；字段与不变量详见 [Work Items](../project-management/schema/work-items.md) |
 
 confirmed 决策的 user_evidence 是调用者提供的依据，脚本不能识别真假。旧决策不删除，新增 superseded 记录说明被哪个决定替代。字段不认识会拒绝；进度描述未验证部分应明确标记。
 
 输出为 UTF-8 JSON（index 输出 Markdown），错误写 stderr 并返回 2。写入有进程锁和事务回滚，失败后检查返回码。日志重复 turn_id 会拒绝，防止同轮重复追加。
+
+旧 Project 没有 `work-items.md` 仍能正常 resume/doctor；第一次创建 WI 时才生成文件。项目级 state.md 与 WI 权威状态分离；WI 完成不自动改变 Project 状态。
 
 ## 文件约束
 
