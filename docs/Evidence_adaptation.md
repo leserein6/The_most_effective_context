@@ -19,6 +19,6 @@
 
 ## 验证边界
 
-已检查 Markdown 链接、来源 ID 与16项场景材料结构；独立审阅走查了已知CSV格式、RPC超时结果未知、子任务接口依赖、缺规格审查四个场景，未发现阻塞性流程问题。审阅提示的辅助方法→checkpoint mode映射已补齐，引用文件生成后已复查链接。目标 DeepSeek 模型下的行为、遵守率、质量变化与Token开销仍待运行 evidence/evals 的对照测试；不能用19项项目文件管理测试代替。
+已检查 Markdown 链接、来源 ID 与16项场景材料结构；独立审阅走查了已知CSV格式、RPC超时结果未知、子任务接口依赖、缺规格审查四个场景，未发现阻塞性流程问题。审阅提示的辅助方法→checkpoint mode映射已补齐，引用文件生成后已复查链接。目标 DeepSeek 模型下的行为、遵守率、质量变化与 Token 开销仍待独立对照测试；不能用项目文件管理检查代替。
 
 本轮更新的是GitHub PR分支。用户Mac上的 `/Users/wangyingxin/workspace/github_projects/The_most_effective_context` 需同步对应分支后才包含变更，当前会话没有直接写入该Mac路径。
