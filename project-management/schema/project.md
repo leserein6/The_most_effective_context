@@ -22,4 +22,4 @@
 
 正式创建需用户确认；未知不等于否定；建议不等于确认；写了文件不等于通过验证；完成本轮不等于项目完成。引用不是真实性证明，需要时回查实际内容。
 
-调用接口见 [CLI](../../docs/CLI.md)，字段提取见 [Definition](definition.md)，进度判断见 [Progress](progress.md)。旧 YAML 模板仅历史参考，旧示例中的字段名按本表理解。
+项目管理命令通过 `python3 scripts/pm.py --help` 查看；字段提取见 [Definition](definition.md)，进度判断见 [Progress](progress.md)。旧 YAML 模板仅历史参考，旧示例中的字段名按本表理解。
