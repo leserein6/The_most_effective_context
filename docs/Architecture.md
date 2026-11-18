@@ -74,7 +74,8 @@ flowchart TD
 
 definition.md：长期问题、期望结果、范围、交付与硬约束。
 project.md：机器可读 JSON 代码块，保存稳定 ID、名称、类型、状态、一句话目标、revision 与时间。
-state.md：当前进度、未解决问题、下一步。
+state.md：项目级进度、未解决问题、下一步；不存储第二套 WI 列表。
+work-items.md（可选）：跨会话拆分工作项、依赖、状态、验收及证据；本轮 Turn Task 只引用 WI-ID，不单独成为持久任务。
 acceptance.md：目标边界和可验证的完成条件。
 decisions.md：提议、确认、失效决定及依据。
 notes.md：项目知识；knowledge-candidates.md：公共候选。
