@@ -6,15 +6,18 @@
 
 **REQUIRED（每轮全部满足）**
 - 首次用户可见回复的第一行固定为 `Project：<id>｜本轮 Task（类型）：…｜Mode：<mode>`。
-- `Project：<id>` 的 ID 必须真实存在于 Index.md 或 History.md，优先 active；会话首轮可写 `Project：无（会话首轮）`，第二轮起不得使用该豁免。
+- `Project：<id>` 的 ID 必须真实存在于 Index.md 且为 active；History 仅用于明确恢复 archived 或重开 completed，且需用户确认。会话首轮可写 `Project：无（会话首轮）`，第二轮起不得使用该豁免。
 - Task 类型只取 answer / proposal / change / assess / learn；Mode 只取 clarify / research / plan / execute / review / learn / orchestrate。
-- 无匹配项目时写 `Project：待确认`，并在本轮提出新建或接续的具体选项。
+- 无匹配 active 项目时，可写 `Project：待确认`，但仅限本轮同时提出新建或接续的具体选项；下一轮必须落成真实 active ID，或用户确认的例外 `Project：无（用户确认的例外：<原因>）`，不得连续用 `待确认` 推进实质工作。
+- 短、单会话可完成的维护任务优先建 `one_off` Project（创建需用户确认）；不要为满足锚定而建 development/learning 项目。
 - 用户改变交付目标时更新 Task 与类型；同轮工具调用不新建 Task。
 
 **FORBIDDEN**
 - 省略 Project、Task 或 Mode 任一项，或改变三项顺序。
 - 只写 `Project：无` 而不说明原因，或未给出选项就跳过锚定。
+- 连续两轮用 `Project：待确认` 推进实质工作，或只写待确认而不给选项。
 - 虚构项目 ID，或把 archived / completed 项目当作 active 接续。
+- 仅为满足锚定而新建长期 Project，或项目类型与目标不匹配。
 - 把 Task 类型写进 Mode 字段或任何持久化记录；Mode 按 checkpoint 规则落盘。
 
 **理由**：软提示会被遗漏；三项固定字段让每轮锚定可见、可核对。
