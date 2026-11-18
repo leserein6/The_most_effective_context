@@ -59,6 +59,127 @@ jobs:
                       assert (target / 'README.md').read_text() == 'Business documentation\n'
                       assert (target / '.gitignore').read_text() == 'business-ignore\n'
           PY
+      - name: Verify Work Item lifecycle and legacy Project compatibility
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import subprocess
+          import sys
+          import tempfile
+          import zipfile
+
+          archive = pathlib.Path('dist/harness-runtime.zip').resolve()
+          with tempfile.TemporaryDirectory() as d:
+              tmp = pathlib.Path(d)
+              package = tmp / 'package'
+              package.mkdir()
+              with zipfile.ZipFile(archive) as z:
+                  z.extractall(package)
+              root = tmp / 'workspace'
+              subprocess.run([sys.executable, str(package / 'scripts/install.py'),
+                              '--target', str(root), '--mode', 'workspace', '--apply'], check=True)
+              pm = [sys.executable, str(root / 'scripts/pm.py')]
+
+              def call(*args, success=True):
+                  result = subprocess.run(pm + list(args), capture_output=True, text=True)
+                  if success:
+                      assert result.returncode == 0, (args, result.stderr)
+                      return json.loads(result.stdout)
+                  assert result.returncode != 0, ('unexpected success', args)
+                  return result.stderr
+
+              def checkpoint(turn, token, success=True, **extra):
+                  payload = {'turn_id': turn, 'mode': 'plan', 'progress': '工作项验收测试',
+                             'next': '按依赖执行', 'operations': ['核对工作项事实'],
+                             'evidence': [], 'outcome': '已记录'}
+                  payload.update(extra)
+                  path = tmp / (turn + '.json')
+                  path.write_text(json.dumps(payload, ensure_ascii=False), encoding='utf-8')
+                  return call('checkpoint', 'legacy', '--expected', token, '--payload', str(path),
+                              success=success)
+
+              call('create', '--id', 'legacy', '--name', '旧项目', '--type',
+                   'development', '--summary', '追踪业务需求', '--confirmed')
+              baseline = call('resume', 'legacy')
+              assert baseline['work_items']['tracked'] is False
+              work_path = root / 'project-management/projects/active/development/legacy/work-items.md'
+              assert not work_path.exists()
+              token = baseline['token']
+
+              new_items = [
+                  {'op': 'create', 'id': 'WI-01', 'title': '确定接口',
+                   'acceptance': ['接口约定已经核验']},
+                  {'op': 'create', 'id': 'WI-02', 'title': '实现依赖接口的行为',
+                   'depends_on': ['WI-01'], 'acceptance': ['回归测试通过']},
+              ]
+              result = checkpoint('turn-01', token, work_item_ids=['WI-01'],
+                                  work_item_updates=new_items)
+              token = result['token']
+              assert work_path.is_file()
+              assert call('resume', 'legacy')['work_items']['counts']['pending'] == 2
+              assert call('work-items', 'legacy')['tracked'] is True
+              assert 'WI-01' in work_path.read_text(encoding='utf-8')
+
+              bad = checkpoint('bad-dependency', token, success=False,
+                               work_item_updates=[{'op': 'update', 'id': 'WI-02',
+                                                   'status': 'in_progress'}])
+              assert 'Unfinished dependency' in bad
+              assert call('resume', 'legacy')['token'] == token
+
+              bad = checkpoint('bad-evidence', token, success=False,
+                               work_item_updates=[{'op': 'update', 'id': 'WI-01',
+                                                   'status': 'completed'}])
+              assert 'observed evidence' in bad
+              assert call('resume', 'legacy')['token'] == token
+
+              bad = checkpoint('bad-cycle', token, success=False,
+                               work_item_updates=[
+                                  {'op': 'create', 'id': 'WI-03', 'title': '甲',
+                                   'acceptance': ['结果可见'], 'depends_on': ['WI-04']},
+                                  {'op': 'create', 'id': 'WI-04', 'title': '乙',
+                                   'acceptance': ['结果可见'], 'depends_on': ['WI-03']},
+                               ])
+              assert 'cycle' in bad
+              assert 'WI-03' not in work_path.read_text(encoding='utf-8')
+              assert call('resume', 'legacy')['token'] == token
+
+              proof = [{'kind': 'observed', 'claim': '本次验收已执行', 'source': 'checks/acceptance.log'}]
+              result = checkpoint('turn-02', token,
+                                  work_item_updates=[{'op': 'update', 'id': 'WI-01',
+                                                      'status': 'completed', 'evidence': proof}])
+              token = result['token']
+              assert call('resume', 'legacy')['work_items']['counts']['completed'] == 1
+              result = checkpoint('turn-03', token,
+                                  work_item_updates=[{'op': 'update', 'id': 'WI-02',
+                                                      'status': 'blocked', 'blocker': '等待接口确认',
+                                                      'next_action': '确认接口'}])
+              token = result['token']
+              assert call('resume', 'legacy')['work_items']['counts']['blocked'] == 1
+              result = checkpoint('turn-04', token,
+                                  work_item_updates=[{'op': 'update', 'id': 'WI-02',
+                                                      'status': 'in_progress',
+                                                      'next_action': '实现与验证'}])
+              token = result['token']
+              assert call('resume', 'legacy')['work_items']['counts']['in_progress'] == 1
+              result = checkpoint('turn-05', token,
+                                  work_item_updates=[{'op': 'update', 'id': 'WI-02',
+                                                      'status': 'completed', 'evidence': proof}])
+              token = result['token']
+              state = call('resume', 'legacy')
+              assert state['work_items']['counts']['completed'] == 2
+              assert state['work_items']['counts']['blocked'] == 0
+
+              bad = checkpoint('bad-id', token, success=False, work_item_ids=['WI-99'])
+              assert 'unknown Work Item' in bad
+              assert call('resume', 'legacy')['token'] == token
+              assert call('doctor')['ok'] is True
+
+              call('status', 'legacy', '--expected', token, '--status', 'archived',
+                   '--reason', '用户要求暂停', '--confirmed')
+              assert call('doctor')['ok'] is True
+              assert call('resume', 'legacy')['work_items']['counts']['completed'] == 2
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: harness-runtime
