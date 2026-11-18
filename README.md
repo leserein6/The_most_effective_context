@@ -37,16 +37,19 @@ Project 按 **状态 → 类型 → 稳定 ID** 组织。三状态为活跃、�
 
 ## 在 Mac 上使用
 
-本仓库只发布 Harness 的协议、使用方法和必要脚本，不提交维护者测试用例或测试专用 CI。安装器使用 `install-manifest.json` **明确白名单**，不会复制源仓库的 Project 用户数据或 `tests/`。当前开发版本位于统一分支 `codex/project-workspace-v1-20261117`（未合并 main）。首次使用：
+这个 GitHub 仓库是 **Harness 源码及维护资料**，并不等于普通用户的工作区。安装器使用 `install-manifest.json` 明确白名单：默认**不安装 `docs/`、根 `README.md`、安装器自身、安装清单、维护测试或源仓库 Project 数据**，仅向目标工作区复制运行时必需文件。日常使用只在目标工作区进行；升级或重新安装时才回到源码仓库。当前开发版本位于 `codex/project-workspace-v1-20261117`（未合并 main）。首次使用：
 
 ```bash
 git clone -b codex/project-workspace-v1-20261117 https://github.com/leserein6/The_most_effective_context.git
 cd The_most_effective_context
+python3 scripts/install.py --target ~/my-ai-workspace --mode workspace
+python3 scripts/install.py --target ~/my-ai-workspace --mode workspace --apply
+cd ~/my-ai-workspace
 python3 scripts/pm.py doctor
 codebuddy
 ```
 
-已有该分支的本地仓库使用 `git pull --ff-only` 同步。需要 Python 3.9+ 和 CodeBuddy。业务测试及 CI 留在业务仓库，Harness 的维护用例不随发行版本分发。
+已有该分支的源码仓库使用 `git pull --ff-only` 同步。需要 Python 3.9+ 和 CodeBuddy；安装目标应是新的空目录。上述安装命令先预览、再执行；源码仓库与 `~/my-ai-workspace` 是两个不同目录。业务测试及 CI 留在业务仓库，Harness 的维护用例不随发行版本分发。
 
 **装入已有 Go/C++ 业务仓库**（不修改业务根目录 README、`.gitignore` 或测试代码）：
 
