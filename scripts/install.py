@@ -17,6 +17,7 @@ MANIFEST = 'install-manifest.json'
 START = '\n<!-- project-harness:start -->\n'
 END = '\n<!-- project-harness:end -->\n'
 ENTRY_CHOICES = ('codebuddy', 'agents', 'both', 'none')
+WORK_SOP_SKILLS = ('work-new-task', 'work-report', 'work-daily', 'work-cross-team', 'work-meeting', 'work-error-response')
 RUNTIME_IGNORE = '.pm-runtime/\n__pycache__/\n*.pyc\n'
 INDEX_HEADER = {
     'Index.md': '# 活跃 Project 索引',
@@ -97,8 +98,35 @@ def entry_block(pointer):
     return (START + 'Project/Task/Mode 管理入口：' + pointer + '\n' + END).encode('utf-8')
 
 
-def plan_install(source, target, mode, merge_entry, entry):
-    paths = load_manifest(source)
+def optional_skill_paths(skills):
+    return ['.codebuddy/skills/' + name + '/SKILL.md' for name in dict.fromkeys(skills)]
+
+
+def plan_optional_skills(source, target, mode, skills):
+    if not skills:
+        raise ValueError('--skills-only requires --skill')
+    harness = target / ('agent.md' if mode == 'workspace' else '.codebuddy/harness/agent.md')
+    ensure_safe(harness, target)
+    if not harness.is_file():
+        raise ValueError('Target has no installed Harness; install the core first')
+    plan = []
+    for rel in optional_skill_paths(skills):
+        src, dest = source / rel, target / rel
+        ensure_safe(src, source)
+        ensure_safe(dest, target)
+        if not src.is_file():
+            raise ValueError('Missing optional skill: ' + rel)
+        data = src.read_bytes()
+        if dest.exists():
+            if not dest.is_file() or dest.read_bytes() != data:
+                raise ValueError('Refusing to overwrite existing optional skill: ' + str(dest))
+            continue
+        plan.append((dest, data, src.stat().st_mode & 0o777))
+    return plan
+
+
+def plan_install(source, target, mode, merge_entry, entry, skills=()):
+    paths = load_manifest(source) + optional_skill_paths(skills)
     if source == target or source in target.parents or target in source.parents:
         raise ValueError('Source and target must be separate directory trees')
     if mode == 'project' and (target / 'agent.md').exists() and (target / 'project-management/Index.md').exists():
@@ -230,6 +258,10 @@ def main():
     p.add_argument('--entry', choices=ENTRY_CHOICES, default='codebuddy',
                    help='host entry adapter to generate: codebuddy (default), agents, both, none')
     p.add_argument('--merge-entry', action='store_true', help='append the managed entry block to an existing selected entry file')
+    p.add_argument('--skill', choices=WORK_SOP_SKILLS, action='append', default=[],
+                   help='optional SOP Skill; repeat to install more than one')
+    p.add_argument('--skills-only', action='store_true',
+                   help='install selected Skills without touching the existing Harness or Project state')
     p.add_argument('--apply', action='store_true')
     args = p.parse_args()
     source = Path(__file__).resolve().parents[1]
@@ -237,7 +269,10 @@ def main():
     if target.is_symlink():
         raise ValueError('Symlink target is not allowed')
     target = target.resolve()
-    plan = plan_install(source, target, args.mode, args.merge_entry, args.entry)
+    if args.skills_only:
+        plan = plan_optional_skills(source, target, args.mode, args.skill)
+    else:
+        plan = plan_install(source, target, args.mode, args.merge_entry, args.entry, args.skill)
     print(('APPLY' if args.apply else 'PREVIEW') + ': ' + str(target) + ' [' + args.mode + ', entry=' + args.entry + ']')
     for dest, _, _ in plan:
         print(('MERGE ' if dest.exists() else 'CREATE ') + str(dest.relative_to(target)))
@@ -246,7 +281,10 @@ def main():
         return
     apply(plan)
     base = target if args.mode == 'workspace' else target / '.codebuddy/harness'
-    print('Installed. Run python3 ' + str(base / 'scripts/pm.py') + ' doctor; in CodeBuddy check /memory and /agents.')
+    if args.skills_only:
+        print('Optional Skills installed. Check /skills; Project data untouched.')
+    else:
+        print('Installed. Run python3 ' + str(base / 'scripts/pm.py') + ' doctor; in CodeBuddy check /memory and /agents.')
 
 
 if __name__ == '__main__':
