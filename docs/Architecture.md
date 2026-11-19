@@ -32,6 +32,10 @@ flowchart TD
 
 模式是通用流程中的可变部分；项目归属、上下文、证据、持久化、故障恢复是横跨模式的机制。
 
+## 方案质量闭环
+
+方案输出按问题/目标/现状/设计/计划/验证/风险组织现有方法，不新增强制全量工作流。需要时执行实施前 Review，得出 READY / EXPERIMENT / NEEDS_REVISION / BLOCKED；该判断不等于项目状态或已完成验证。权威需求、决策、验收和 WI 仍保存在现有 Project 文件，方案原文按需置于 work/。参见 [方案质量与就绪准则](Proposal_quality.md)。
+
 ## 开发型需求的测试工程集成
 
 不新增独立 Task 实体或 Mode 名称。原有 proposal/change/assess 路由按当前阶段读取 evidence/testing 的设计、方法选择、运行与验收协议：

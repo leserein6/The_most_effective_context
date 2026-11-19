@@ -189,13 +189,21 @@ class Transaction:
     def __init__(self, store):
         self.s = store
         self.before = {}
+        self.created_dirs = set()
 
     def write(self, p, data, mode=None):
         p = self.s.guarded(p)
         key = str(p.relative_to(self.s.root))
         if key not in self.before:
+            # Record only directories absent before this transaction's write.
+            # Recovery must not remove directories that predated the operation.
+            parent = p.parent
+            while parent != self.s.root:
+                if not parent.exists():
+                    self.created_dirs.add(str(parent.relative_to(self.s.root)))
+                parent = parent.parent
             self.before[key] = {'data': base64.b64encode(p.read_bytes()).decode(), 'mode': p.stat().st_mode & 0o777} if p.exists() else None
-            atomic(self.s.journal, dump({'before': self.before}).encode())
+            atomic(self.s.journal, dump({'before': self.before, 'created_dirs': sorted(self.created_dirs)}).encode())
         if data is None:
             if p.exists():
                 p.unlink()
@@ -216,9 +224,13 @@ class Transaction:
 def rollback(s):
     if not s.journal.exists():
         return
-    changes = json.loads(s.journal.read_text())['before']
+    journal = json.loads(s.journal.read_text())
+    changes = journal['before']
+    created_dirs = journal.get('created_dirs', [])
+    if not isinstance(created_dirs, list) or any(not isinstance(rel, str) for rel in created_dirs):
+        raise ValueError('Invalid recovery directory list')
     # Validate the complete journal before modifying anything.
-    for rel in changes:
+    for rel in list(changes) + created_dirs:
         if Path(rel).is_absolute() or '..' in Path(rel).parts:
             raise ValueError('Invalid recovery path')
         s.guarded(s.root / rel)
@@ -231,6 +243,14 @@ def rollback(s):
                 p.unlink()
         else:
             atomic(p, base64.b64decode(old['data']), mode=old['mode'])
+    # Undo only empty directories that the write-ahead journal recorded as
+    # absent prior to the transaction. Never prune pre-existing or nonempty dirs.
+    for rel in sorted(created_dirs, key=lambda x: len(Path(x).parts), reverse=True):
+        folder = s.guarded(s.root / rel)
+        try:
+            folder.rmdir()
+        except OSError:
+            pass
     s.journal.unlink()
 
 
@@ -450,19 +470,40 @@ def work_item_overview(doc):
             'file': 'work-items.md'}
 
 
+def payload_digest(data):
+    """Stable SHA-256 of validated input, independent of JSON whitespace."""
+    canonical = json.dumps(data, ensure_ascii=False, sort_keys=True,
+                           separators=(',', ':')).encode('utf-8')
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def receipt_records(path):
+    """Legacy ID-only receipts deduplicate but cannot authorize cleanup."""
+    records = {}
+    if not path.is_file():
+        return records
+    pattern = r'- ([a-z0-9][a-z0-9_-]{0,79})(?: \| sha256:([0-9a-f]{64}))?'
+    for line in path.read_text(encoding='utf-8').splitlines():
+        match = re.fullmatch(pattern, line)
+        if match:
+            records.setdefault(match.group(1), []).append(match.group(2))
+    return records
+
+
 def checkpoint(s, a):
     p, m = s.get(a.id)
     s.check(p, a.expected)
     d = read_payload(a.payload)
-    unknown = set(d) - {'turn_id', 'mode', 'progress', 'next', 'open_questions', 'operations', 'evidence', 'outcome', 'decisions', 'notes', 'candidates', 'phase_end', 'work_item_ids', 'work_item_updates'}
+    unknown = set(d) - {'turn_id', 'mode', 'progress', 'next', 'open_questions', 'operations', 'evidence', 'outcome', 'decisions', 'notes', 'candidates', 'phase_end', 'work_item_ids', 'work_item_updates', 'project_id'}
     if unknown:
         raise ValueError('Unknown fields: ' + ', '.join(sorted(unknown)))
     turn = safe_id(d['turn_id'])
+    if 'project_id' in d and d['project_id'] != a.id:
+        raise ValueError('Checkpoint project_id does not match target Project')
     if 'phase_end' in d and not isinstance(d['phase_end'], bool):
         raise ValueError('phase_end must be boolean')
     receipts = p / 'logs' / 'receipts.md'
-    receipt_text = receipts.read_text() if receipts.exists() else ''
-    if ('\n- ' + turn + '\n') in receipt_text:
+    if turn in receipt_records(receipts):
         raise ValueError('Duplicate turn_id: ' + turn)
     if d['mode'] not in MODES:
         raise ValueError('Invalid mode')
@@ -518,7 +559,7 @@ def checkpoint(s, a):
             append(tx, p / 'decisions.md', '\n- [{}] {}\n  用户依据：{}\n'.format(
                 decision['status'], decision['text'], decision.get('user_evidence', '待确认')))
         append(tx, p / 'logs/current.md', log_entry(d['mode'], d['operations'], d['evidence'], d['outcome'], turn, refs))
-        append(tx, receipts, '\n- ' + turn + '\n')
+        append(tx, receipts, '\n- {} | sha256:{}\n'.format(turn, payload_digest(d)))
         if d.get('phase_end'):
             tx.write(p / 'logs/compression-due.md', '阶段结束：请评估并生成有来源的摘要，再执行 compact。\n')
         bump(tx, p, m)
@@ -535,6 +576,7 @@ def compression_due(p):
 
 RUNTIME_CLEAN_DEFAULT_HOURS = 24
 RUNTIME_CLEAN_MAX_PAYLOAD_BYTES = 2 * 1024 * 1024
+RUNTIME_ADVISORY_BYTES = 10 * 1024 * 1024
 
 
 def runtime_bytes(path):
@@ -553,8 +595,8 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
     """Conservatively clean only old, confirmed checkpoint-input files.
 
     Unknown files and *all* directories are reported but never deleted.
-    A receipt proves a turn was persisted; ambiguous/missing receipts
-    mean the JSON might be an unfinished input and must be kept.
+    Only a matching (Project, turn ID, payload digest) receipt proves a
+    file was persisted. Old unscoped inputs are preserved for manual review.
     """
     if older_than_hours < 0:
         raise ValueError('--older-than-hours must be nonnegative')
@@ -563,13 +605,8 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
         return {'dry_run': not apply, 'eligible': [], 'removed': [], 'preserved': [],
                 'reclaimable_bytes': 0, 'runtime_bytes': 0}
 
-    receipts = {}
-    for project_path, _ in s.projects():
-        path = project_path / 'logs/receipts.md'
-        if not path.is_file():
-            continue
-        for turn in re.findall(r'(?m)^- ([a-z0-9][a-z0-9_-]{0,79})\s*$', path.read_text(encoding='utf-8')):
-            receipts[turn] = receipts.get(turn, 0) + 1
+    receipts = {meta['id']: receipt_records(project_path / 'logs/receipts.md')
+                for project_path, meta in s.projects()}
 
     eligible, preserved, removed = [], [], []
     now_timestamp = time.time()
@@ -603,10 +640,19 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
             continue
         if not isinstance(data, dict) or not isinstance(data.get('turn_id'), str) or not (
             isinstance(data.get('operations'), list) and isinstance(data.get('evidence'), list)
-        ) or receipts.get(data['turn_id']) != 1:
-            preserved.append({'path': rel, 'reason': 'checkpoint not uniquely confirmed in receipts'})
+        ):
+            preserved.append({'path': rel, 'reason': 'invalid checkpoint input'})
             continue
-        eligible.append({'path': rel, 'bytes': stat_info.st_size, 'turn_id': data['turn_id']})
+        pid = data.get('project_id')
+        if not isinstance(pid, str) or pid not in receipts:
+            preserved.append({'path': rel, 'reason': 'missing or unknown Project scope'})
+            continue
+        proofs = receipts[pid].get(data['turn_id'], [])
+        if len(proofs) != 1 or proofs[0] != payload_digest(data):
+            preserved.append({'path': rel, 'reason': 'checkpoint digest not confirmed for Project'})
+            continue
+        eligible.append({'path': rel, 'bytes': stat_info.st_size,
+                         'project_id': pid, 'turn_id': data['turn_id']})
         candidates.append((entry, stat_info))
     if apply:
         for entry, scanned in candidates:
@@ -729,6 +775,13 @@ def run(a):
             files = [f for f in sorted(p.rglob('*')) if f.is_file()]
             for f in p.rglob('*'):
                 s.guarded(f)
+            # Moving a Project duplicates files and journals original bytes.
+            # Best-effort disk reserve before attempting a large transaction.
+            total_bytes = sum(f.stat().st_size for f in files)
+            if total_bytes > 2 * 1024 * 1024:
+                estimated_extra = total_bytes * 4 + 8 * 1024 * 1024
+                if shutil.disk_usage(s.root).free < estimated_extra:
+                    raise ValueError('Insufficient free space for safe Project status migration')
             with Transaction(s) as tx:
                 for f in files:
                     tx.write(dest / f.relative_to(p), f.read_bytes(), mode=f.stat().st_mode & 0o777)
@@ -866,8 +919,12 @@ def run(a):
                 s.indexes(Compare())
             if errors:
                 raise ValueError('\n'.join(errors))
+            size = runtime_bytes(s.runtime)
+            warnings = []
+            if size > RUNTIME_ADVISORY_BYTES:
+                warnings.append('Runtime directory exceeds advisory 10 MiB; inspect clean preview and preserved files')
             return {'ok': True, 'projects': len(projects), 'codebuddy_installed': shutil.which('codebuddy') is not None,
-                    'agent_behavior_verified': False}
+                    'agent_behavior_verified': False, 'runtime_bytes': size, 'warnings': warnings}
         if a.command == 'recover':
             if not a.rollback:
                 raise ValueError('Inspect .pm-runtime/pending.json; then pass --rollback')

@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - 'codex/**'
+  pull_request:
+    branches:
       - codex/project-workspace-v1-20261117
   workflow_dispatch:
 
@@ -18,6 +21,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Validate maintained Markdown structure
+        run: python3 scripts/check_docs.py
       - name: Build and verify whitelist distribution
         run: |
           python3 scripts/build_runtime.py --output dist/harness-runtime.zip
@@ -227,7 +232,7 @@ jobs:
               call('create', '--id', 'cleanup-probe', '--name', '隔离测试', '--type', 'development',
                    '--summary', '验证清理安全边界', '--confirmed')
               token = call('resume', 'cleanup-probe')['token']
-              payload = {'turn_id': 'turn-clean-001', 'mode': 'plan', 'progress': '已完成测试输入',
+              payload = {'project_id': 'cleanup-probe', 'turn_id': 'turn-clean-001', 'mode': 'plan', 'progress': '已完成测试输入',
                          'next': '运行清理验证', 'operations': ['执行一次真实 checkpoint'],
                          'evidence': [], 'outcome': '已写入'}
               # Preferred path: stdin, no turn JSON is created at all.
@@ -286,6 +291,133 @@ jobs:
               assert call('recover', '--rollback')['rolled_back'] is True
               assert not pending.exists()
               assert call('doctor')['ok']
+          PY
+      - name: Verify Project-scoped cleanup and large status migration
+        run: |
+          python3 - <<'PY'
+          import importlib.util
+          import json
+          import os
+          import pathlib
+          import subprocess
+          import sys
+          import tempfile
+          import time
+          import zipfile
+          from unittest import mock
+
+          archive = pathlib.Path('dist/harness-runtime.zip').resolve()
+          with tempfile.TemporaryDirectory() as td:
+              root = pathlib.Path(td)
+              package = root / 'package'
+              package.mkdir()
+              with zipfile.ZipFile(archive) as z:
+                  z.extractall(package)
+              workspace = root / 'workspace'
+              subprocess.run([sys.executable, str(package / 'scripts/install.py'),
+                              '--target', str(workspace), '--mode', 'workspace', '--apply'], check=True)
+              exe = [sys.executable, str(workspace / 'scripts/pm.py')]
+              def call(*args, input_text=None, succeed=True):
+                  p = subprocess.run(exe + list(args), input=input_text,
+                                     text=True, capture_output=True, cwd=workspace)
+                  assert (p.returncode == 0) == succeed, (args, p.stdout, p.stderr)
+                  return json.loads(p.stdout) if succeed else p.stderr
+              def create(pid):
+                  call('create', '--id', pid, '--name', pid, '--type', 'development',
+                       '--summary', 'safe isolation', '--confirmed')
+              def checkpoint(pid, data):
+                  token = call('resume', pid)['token']
+                  call('checkpoint', pid, '--expected', token, '--payload', '-',
+                       input_text=json.dumps(data, ensure_ascii=False))
+              def payload(pid, tid):
+                  return {'project_id': pid, 'turn_id': tid, 'mode': 'plan',
+                          'progress': 'progress', 'next': 'next', 'operations': ['check'],
+                          'evidence': [], 'outcome': 'complete'}
+              def old_file(name, data):
+                  path = workspace / '.pm-runtime' / name
+                  path.write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+                  stamp = time.time() - 72 * 3600
+                  os.utime(path, (stamp, stamp))
+                  return path
+
+              create('alpha')
+              create('beta')
+              a = payload('alpha', 'same-turn')
+              b = payload('beta', 'same-turn')
+              checkpoint('alpha', a)
+              checkpoint('beta', b)
+              valid = old_file('turn-alpha.json', a)
+              changed = old_file('turn-beta-changed.json', dict(b, outcome='uncommitted edit'))
+              uncommitted = old_file('turn-forged.json', payload('beta', 'alpha-only'))
+              checkpoint('alpha', payload('alpha', 'alpha-only'))
+              legacy = old_file('turn-legacy.json', {k: v for k, v in a.items() if k != 'project_id'})
+              preview = call('clean')
+              assert [v['path'] for v in preview['eligible']] == [valid.name], preview
+              applied = call('clean', '--apply')
+              assert applied['removed'] == [valid.name], applied
+              assert not valid.exists()
+              assert changed.exists() and uncommitted.exists() and legacy.exists()
+              assert 'Duplicate turn_id' in call('checkpoint', 'alpha', '--expected',
+                    call('resume', 'alpha')['token'], '--payload', '-',
+                    input_text=json.dumps(a), succeed=False)
+              assert call('doctor')['ok']
+              big = workspace / 'project-management/projects/active/development/alpha/work/data.bin'
+              big.write_bytes(b'z' * (3 * 1024 * 1024))
+              token = call('resume', 'alpha')['token']
+              spec = importlib.util.spec_from_file_location('pm_under_test', workspace / 'scripts/pm.py')
+              pm = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(pm)
+              args = pm.parser().parse_args(['--root', str(workspace), 'status', 'alpha',
+                  '--expected', token, '--status', 'archived', '--reason', 'confirmed in test', '--confirmed'])
+              with mock.patch.object(pm.shutil, 'disk_usage') as mocked:
+                  mocked.return_value = type('Usage', (), {'free': 1})()
+                  try:
+                      pm.run(args)
+                      raise AssertionError('Expected insufficient-space rejection')
+                  except ValueError as exc:
+                      assert 'Insufficient free space' in str(exc), exc
+              assert big.is_file()
+              assert not (workspace / '.pm-runtime/pending.json').exists()
+              call('status', 'alpha', '--expected', token, '--status', 'archived',
+                   '--reason', 'confirmed in test', '--confirmed')
+              archived = workspace / 'project-management/projects/archived/development/alpha/work/data.bin'
+              assert archived.read_bytes() == b'z' * (3 * 1024 * 1024)
+              assert not big.exists()
+              assert call('doctor')['ok']
+              assert not (workspace / '.pm-runtime/pending.json').exists()
+
+              # Inject a mid-migration write error: the original Project must be restored.
+              token2 = call('resume', 'alpha')['token']
+              args2 = pm.parser().parse_args(['--root', str(workspace), 'status', 'alpha',
+                  '--expected', token2, '--status', 'completed',
+                  '--reason', 'injected failure', '--confirmed'])
+              actual_atomic = pm.atomic
+              hit = {'value': False}
+              def inject_once(path, data, mode=None):
+                  if (not hit['value'] and '/completed/' in str(path)
+                          and str(path).endswith('/state.md')):
+                      hit['value'] = True
+                      raise OSError('injected mid-migration failure')
+                  return actual_atomic(path, data, mode=mode)
+              with mock.patch.object(pm, 'atomic', side_effect=inject_once):
+                  try:
+                      pm.run(args2)
+                      raise AssertionError('Expected injected migration failure')
+                  except OSError as exc:
+                      assert 'injected mid-migration' in str(exc), exc
+              assert hit['value']
+              assert archived.read_bytes() == b'z' * (3 * 1024 * 1024)
+              assert not (workspace / '.pm-runtime/pending.json').exists()
+              assert call('doctor')['ok']
+
+              # Advisory capacity warning is read-only; never auto-prune unknown files.
+              unknown = workspace / '.pm-runtime' / 'unrecognized-large.bin'
+              unknown.write_bytes(b'a' * (11 * 1024 * 1024))
+              diagnostics = call('doctor')
+              assert diagnostics['ok'] and diagnostics['runtime_bytes'] >= 11 * 1024 * 1024
+              assert diagnostics['warnings']
+              assert not call('clean', '--apply')['removed']
+              assert unknown.exists() and unknown.stat().st_size == 11 * 1024 * 1024
           PY
       - uses: actions/upload-artifact@v4
         with:
