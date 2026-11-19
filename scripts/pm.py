@@ -234,8 +234,13 @@ def rollback(s):
     s.journal.unlink()
 
 
+def read_text_input(path):
+    """'-' reads stdin; named files are read-only and never consumed or deleted."""
+    return sys.stdin.read() if str(path) == '-' else Path(path).read_text(encoding='utf-8')
+
+
 def read_payload(path):
-    data = json.loads(Path(path).read_text(encoding='utf-8'))
+    data = json.loads(read_text_input(path))
     if not isinstance(data, dict):
         raise ValueError('Payload must be an object')
     return data
@@ -518,13 +523,8 @@ def checkpoint(s, a):
             tx.write(p / 'logs/compression-due.md', '阶段结束：请评估并生成有来源的摘要，再执行 compact。\n')
         bump(tx, p, m)
         s.indexes(tx)
-    payload = Path(a.payload).resolve()
-    try:
-        payload.relative_to(s.runtime.resolve())
-    except ValueError:
-        pass
-    else:
-        payload.unlink(missing_ok=True)
+    # The caller owns --payload FILE. Never delete it implicitly; use --payload -
+    # (stdin) for zero scratch files.
     return {'id': a.id, 'token': s.token(p), 'compression_due': compression_due(p), 'work_item_ids': refs}
 
 
@@ -533,11 +533,12 @@ def compression_due(p):
     return (current.exists() and current.stat().st_size >= 32768) or (p / 'logs/compression-due.md').exists()
 
 
-RUNTIME_TTL_SECONDS = 24 * 3600
-RUNTIME_MAX_BYTES = 10 * 1024 * 1024
+RUNTIME_CLEAN_DEFAULT_HOURS = 24
+RUNTIME_CLEAN_MAX_PAYLOAD_BYTES = 2 * 1024 * 1024
 
 
 def runtime_bytes(path):
+    """Best-effort size estimate; never follow symlinked files or folders."""
     total = 0
     for p in path.rglob('*'):
         try:
@@ -548,45 +549,87 @@ def runtime_bytes(path):
     return total
 
 
-def sweep_runtime(s):
-    """Drop expired scratch from .pm-runtime; lock and rollback payload stay."""
+def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
+    """Conservatively clean only old, confirmed checkpoint-input files.
+
+    Unknown files and *all* directories are reported but never deleted.
+    A receipt proves a turn was persisted; ambiguous/missing receipts
+    mean the JSON might be an unfinished input and must be kept.
+    """
+    if older_than_hours < 0:
+        raise ValueError('--older-than-hours must be nonnegative')
     runtime = s.runtime
     if not runtime.is_dir():
-        return
-    keep = {'lock', 'pending.json'}
-    now = time.time()
+        return {'dry_run': not apply, 'eligible': [], 'removed': [], 'preserved': [],
+                'reclaimable_bytes': 0, 'runtime_bytes': 0}
 
-    def drop(entry):
-        try:
-            if entry.is_symlink() or entry.is_file():
-                entry.unlink()
-            else:
-                shutil.rmtree(entry)
-        except OSError:
-            pass
+    receipts = {}
+    for project_path, _ in s.projects():
+        path = project_path / 'logs/receipts.md'
+        if not path.is_file():
+            continue
+        for turn in re.findall(r'(?m)^- ([a-z0-9][a-z0-9_-]{0,79})\s*$', path.read_text(encoding='utf-8')):
+            receipts[turn] = receipts.get(turn, 0) + 1
 
-    for entry in list(runtime.iterdir()):
-        if entry.name in keep:
+    eligible, preserved, removed = [], [], []
+    now_timestamp = time.time()
+    minimum_age = older_than_hours * 3600
+    candidates = []
+    for entry in sorted(runtime.iterdir()):
+        rel = entry.name
+        if rel in ('lock', 'pending.json'):
+            preserved.append({'path': rel, 'reason': 'lock or transaction recovery'})
+            continue
+        if entry.is_symlink():
+            preserved.append({'path': rel, 'reason': 'symlink: never follow or delete'})
+            continue
+        if not entry.is_file():
+            preserved.append({'path': rel, 'reason': 'directory or unrecognized entry'})
+            continue
+        stat_info = entry.stat()
+        if not re.fullmatch(r'turn-[a-z0-9_-]+\.json', rel):
+            preserved.append({'path': rel, 'reason': 'unrecognized file'})
+            continue
+        if stat_info.st_size > RUNTIME_CLEAN_MAX_PAYLOAD_BYTES:
+            preserved.append({'path': rel, 'reason': 'large/unknown payload'})
+            continue
+        if now_timestamp - stat_info.st_mtime < minimum_age:
+            preserved.append({'path': rel, 'reason': 'too recent'})
             continue
         try:
-            if now - entry.stat().st_mtime > RUNTIME_TTL_SECONDS:
-                drop(entry)
-        except OSError:
-            pass
-    if runtime_bytes(runtime) <= RUNTIME_MAX_BYTES:
-        return
-    entries = [e for e in runtime.iterdir() if e.name not in keep]
-    entries.sort(key=lambda e: e.stat().st_mtime if e.exists() else 0)
-    for entry in entries:
-        if runtime_bytes(runtime) <= RUNTIME_MAX_BYTES:
-            break
-        drop(entry)
-
+            data = json.loads(entry.read_text(encoding='utf-8'))
+        except (OSError, ValueError, UnicodeError):
+            preserved.append({'path': rel, 'reason': 'invalid JSON'})
+            continue
+        if not isinstance(data, dict) or not isinstance(data.get('turn_id'), str) or not (
+            isinstance(data.get('operations'), list) and isinstance(data.get('evidence'), list)
+        ) or receipts.get(data['turn_id']) != 1:
+            preserved.append({'path': rel, 'reason': 'checkpoint not uniquely confirmed in receipts'})
+            continue
+        eligible.append({'path': rel, 'bytes': stat_info.st_size, 'turn_id': data['turn_id']})
+        candidates.append((entry, stat_info))
+    if apply:
+        for entry, scanned in candidates:
+            # Reject changes between preview and removal, including symlink replacement.
+            try:
+                current = entry.lstat()
+                if (not entry.is_symlink() and entry.is_file()
+                        and current.st_ino == scanned.st_ino
+                        and current.st_mtime_ns == scanned.st_mtime_ns
+                        and current.st_size == scanned.st_size):
+                    entry.unlink()
+                    removed.append(entry.name)
+            except OSError:
+                pass
+    return {'dry_run': not apply, 'eligible': eligible, 'removed': removed,
+            'preserved': preserved, 'reclaimable_bytes': sum(x['bytes'] for x in eligible),
+            'runtime_bytes': runtime_bytes(runtime)}
 
 def run(a):
     s = Store(a.root)
     with s.lock(recovery=a.command == 'recover'):
-        sweep_runtime(s)
+        if a.command == 'clean':
+            return clean_runtime(s, a.apply, a.older_than_hours)
         if a.command == 'init':
             with Transaction(s) as tx:
                 s.indexes(tx)
@@ -663,7 +706,7 @@ def run(a):
             s.check(p, a.expected)
             # Semantic conflicts and user confirmation remain Agent responsibilities.
             target = a.document
-            content = Path(a.file).read_text(encoding='utf-8')
+            content = read_text_input(a.file)
             text_field(content, 'document')
             with Transaction(s) as tx:
                 tx.write(p / target, content)
@@ -713,7 +756,7 @@ def run(a):
             content = current.read_bytes()
             if current.read_text().strip() == '# 当前操作日志':
                 raise ValueError('No log entries to compact')
-            summary = text_field(Path(a.summary_file).read_text(encoding='utf-8'), 'summary')
+            summary = text_field(read_text_input(a.summary_file), 'summary')
             for heading in ('## 已完成', '## 决策', '## 未解决', '## 恢复位置'):
                 if heading not in summary:
                     raise ValueError('Summary requires heading: ' + heading)
@@ -737,7 +780,7 @@ def run(a):
             if not a.confirmed:
                 raise ValueError('Public conventions require user confirmation')
             title = text_field(a.title, 'title', True)
-            body = text_field(Path(a.file).read_text(encoding='utf-8'), 'convention')
+            body = text_field(read_text_input(a.file), 'convention')
             user_evidence = text_field(a.reason, 'user confirmation evidence')
             with Transaction(s) as tx:
                 append(tx, s.base / 'conventions/README.md', '\n## {}\n\n来源 Project：{}；确认依据：{}\n\n{}\n'.format(title, a.id, user_evidence, body))
@@ -865,6 +908,9 @@ def parser():
         if command == 'promote':
             q.add_argument('--title', required=True); q.add_argument('--file', required=True)
             q.add_argument('--reason', required=True); q.add_argument('--confirmed', action='store_true')
+    q = sub.add_parser('clean', help='Preview safe runtime cleanup (never deletes unknown files)')
+    q.add_argument('--apply', action='store_true', help='delete only eligible, persisted old checkpoint inputs')
+    q.add_argument('--older-than-hours', type=int, default=RUNTIME_CLEAN_DEFAULT_HOURS)
     sub.add_parser('doctor')
     q = sub.add_parser('recover'); q.add_argument('--rollback', action='store_true')
     return p
