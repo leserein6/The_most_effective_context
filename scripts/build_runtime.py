@@ -12,14 +12,14 @@ import sys
 import zipfile
 from pathlib import Path
 
-from install import load_manifest
+from install import load_manifest, WORK_SOP_SKILLS, optional_skill_paths
 
 BOOTSTRAP_FILES = ('install-manifest.json', 'scripts/install.py')
 RESTRICTED_ROOTS = ('docs/', 'tests/', 'examples/', 'project-management/projects/', '.git/')
 
 
 def runtime_paths(source):
-    paths = sorted(set(load_manifest(source)) | set(BOOTSTRAP_FILES))
+    paths = sorted(set(load_manifest(source)) | set(BOOTSTRAP_FILES) | set(optional_skill_paths(WORK_SOP_SKILLS)))
     for rel in paths:
         if rel in ('README.md', '.gitignore') or rel.startswith(RESTRICTED_ROOTS):
             raise ValueError('Maintainer or user-state path in distribution: ' + rel)
@@ -60,7 +60,7 @@ def build(source, archive_path):
     digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
     (archive_path.parent / (archive_path.name + '.sha256')).write_text(
         '{}  {}\n'.format(digest, archive_path.name), encoding='ascii')
-    print('Archive: {} ({} runtime/installer files)'.format(archive_path, len(paths)))
+    print('Archive: {} ({} runtime, optional skill, and installer files)'.format(archive_path, len(paths)))
     print('SHA256: {}'.format(digest))
 
 
