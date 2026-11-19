@@ -191,6 +191,102 @@ jobs:
               assert call('doctor')['ok'] is True
               assert call('resume', 'legacy')['work_items']['counts']['completed'] == 2
           PY
+      - name: Verify safe runtime cleanup and stdin writes
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import subprocess
+          import sys
+          import tempfile
+          import time
+          import zipfile
+
+          archive = pathlib.Path('dist/harness-runtime.zip').resolve()
+          with tempfile.TemporaryDirectory() as td:
+              base = pathlib.Path(td)
+              package = base / 'package'
+              package.mkdir()
+              with zipfile.ZipFile(archive) as z:
+                  z.extractall(package)
+              workspace = base / 'workspace'
+              installer = [sys.executable, str(package / 'scripts/install.py')]
+              subprocess.run(installer + ['--target', str(workspace), '--mode', 'workspace', '--apply'], check=True)
+              pm = [sys.executable, str(workspace / 'scripts/pm.py')]
+
+              def call(*args, input_text=None, success=True):
+                  proc = subprocess.run(pm + list(args), cwd=workspace, input=input_text,
+                                        text=True, capture_output=True)
+                  if success:
+                      assert proc.returncode == 0, (args, proc.stdout, proc.stderr)
+                      return json.loads(proc.stdout)
+                  assert proc.returncode != 0, ('unexpected success', args)
+                  return proc.stderr
+
+              call('create', '--id', 'cleanup-probe', '--name', '隔离测试', '--type', 'development',
+                   '--summary', '验证清理安全边界', '--confirmed')
+              token = call('resume', 'cleanup-probe')['token']
+              payload = {'turn_id': 'turn-clean-001', 'mode': 'plan', 'progress': '已完成测试输入',
+                         'next': '运行清理验证', 'operations': ['执行一次真实 checkpoint'],
+                         'evidence': [], 'outcome': '已写入'}
+              # Preferred path: stdin, no turn JSON is created at all.
+              call('checkpoint', 'cleanup-probe', '--expected', token, '--payload', '-',
+                   input_text=json.dumps(payload, ensure_ascii=False))
+              assert call('doctor')['ok']
+              rt = workspace / '.pm-runtime'
+              assert not list(rt.glob('turn-*.json'))
+
+              # Legacy JSON is eligible ONLY when its turn has already been persisted.
+              old_input = rt / 'turn-20261119-001.json'
+              old_input.write_text(json.dumps(payload), encoding='utf-8')
+              stale = time.time() - 3 * 86400
+              os.utime(old_input, (stale, stale))
+              failed_input = rt / 'turn-20261119-002.json'
+              failed_input.write_text(json.dumps(dict(payload, turn_id='never-committed')), encoding='utf-8')
+              os.utime(failed_input, (stale, stale))
+              notes = rt / 'definition.md'
+              notes.write_text('not a checkpoint payload', encoding='utf-8')
+              folder = rt / 'ai-spring-2027'
+              folder.mkdir()
+              (folder / 'important.md').write_text('keep me', encoding='utf-8')
+              outside = base / 'outside.txt'
+              outside.write_text('must remain', encoding='utf-8')
+              (rt / 'outside-link').symlink_to(outside)
+
+              preview = call('clean')
+              assert preview['dry_run'] is True and not preview['removed']
+              assert [x['path'] for x in preview['eligible']] == [old_input.name], preview
+              assert old_input.exists()
+              applied = call('clean', '--apply')
+              assert applied['removed'] == [old_input.name], applied
+              assert not old_input.exists()
+              assert failed_input.exists() and notes.exists()
+              assert (folder / 'important.md').read_text() == 'keep me'
+              assert outside.read_text() == 'must remain'
+              assert (rt / 'outside-link').is_symlink()
+              assert call('clean', '--apply')['removed'] == []
+              assert (rt / 'lock').exists()
+
+              # Failed writes cannot mark input as persisted or consume caller files.
+              token = call('resume', 'cleanup-probe')['token']
+              bad = rt / 'turn-20261119-003.json'
+              bad.write_text(json.dumps(dict(payload, turn_id='never-committed', mode='invalid')),
+                             encoding='utf-8')
+              call('checkpoint', 'cleanup-probe', '--expected', token,
+                   '--payload', str(bad), success=False)
+              assert bad.is_file()
+              assert call('doctor')['ok']
+
+              # An interrupted transaction prevents clean until recovery.
+              pending = rt / 'pending.json'
+              pending.write_text('{"before": {}}', encoding='utf-8')
+              call('clean', success=False)
+              assert pending.exists()
+              assert call('recover', '--rollback')['rolled_back'] is True
+              assert not pending.exists()
+              assert call('doctor')['ok']
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: harness-runtime
