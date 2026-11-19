@@ -385,6 +385,39 @@ jobs:
               assert not big.exists()
               assert call('doctor')['ok']
               assert not (workspace / '.pm-runtime/pending.json').exists()
+
+              # Inject a mid-migration write error: the original Project must be restored.
+              token2 = call('resume', 'alpha')['token']
+              args2 = pm.parser().parse_args(['--root', str(workspace), 'status', 'alpha',
+                  '--expected', token2, '--status', 'completed',
+                  '--reason', 'injected failure', '--confirmed'])
+              actual_atomic = pm.atomic
+              hit = {'value': False}
+              def inject_once(path, data, mode=None):
+                  if (not hit['value'] and '/completed/' in str(path)
+                          and str(path).endswith('/state.md')):
+                      hit['value'] = True
+                      raise OSError('injected mid-migration failure')
+                  return actual_atomic(path, data, mode=mode)
+              with mock.patch.object(pm, 'atomic', side_effect=inject_once):
+                  try:
+                      pm.run(args2)
+                      raise AssertionError('Expected injected migration failure')
+                  except OSError as exc:
+                      assert 'injected mid-migration' in str(exc), exc
+              assert hit['value']
+              assert archived.read_bytes() == b'z' * (3 * 1024 * 1024)
+              assert not (workspace / '.pm-runtime/pending.json').exists()
+              assert call('doctor')['ok']
+
+              # Advisory capacity warning is read-only; never auto-prune unknown files.
+              unknown = workspace / '.pm-runtime' / 'unrecognized-large.bin'
+              unknown.write_bytes(b'a' * (11 * 1024 * 1024))
+              diagnostics = call('doctor')
+              assert diagnostics['ok'] and diagnostics['runtime_bytes'] >= 11 * 1024 * 1024
+              assert diagnostics['warnings']
+              assert not call('clean', '--apply')['removed']
+              assert unknown.exists() and unknown.stat().st_size == 11 * 1024 * 1024
           PY
       - uses: actions/upload-artifact@v4
         with:
