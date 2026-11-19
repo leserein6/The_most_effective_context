@@ -16,7 +16,8 @@
 | status ID | 用户确认后迁移状态，保留 ID 和内容 |
 | compact ID | 原文归档、追加摘要、重置活跃日志 |
 | promote ID | 确认后将公共知识纳入 conventions |
-| clean / clean --apply | 预览/清理已写入正式日志的旧 checkpoint 输入；未知文件与目录只报告 |\n| doctor | 结构、索引、日志归档校验；报告本机 CLI 是否存在 |
+| clean / clean --apply | 预览/清理已写入正式日志的旧 checkpoint 输入；未知文件与目录只报告 |
+| doctor | 结构、索引、日志归档校验；报告本机 CLI 是否存在 |
 | recover --rollback | 检查未完成事务后恢复原始文件 |
 
 ## 新建与写入示例
@@ -32,7 +33,16 @@ python3 scripts/pm.py compact todo-cli --expected 实际TOKEN --summary-file .pm
 python3 scripts/pm.py promote todo-cli --expected 实际TOKEN --title '可复用经验' --file .pm-runtime/candidate.md --reason '用户确认纳入' --confirmed
 ```
 
-若不希望生成临时 JSON，直接使用 `--payload -` 并通过 heredoc 传入 JSON；`edit --file -`、`compact --summary-file -` 和 `promote --file -` 同样支持 stdin。传入普通文件时，脚本**只读不删**。下面两条命令分别预览和执行清理：\n\n```bash\npython3 scripts/pm.py clean\npython3 scripts/pm.py clean --apply\n```\n\n清理仅考虑 `.pm-runtime/` 根目录下、超过默认 24 小时且 `turn_id` 已唯一记录在 Project receipts 的有效 `turn-*.json`；`lock`、`pending.json`、未知文件、Markdown 和所有子目录均不删。可用 `--older-than-hours N` 调整候选年龄；执行前先核对预览。`clean` 不会自动在其他命令中运行。\n\n命令行静态例子的用户确认标志只是示范，不应未获真实确认就照抄执行。所有 shared-state 写入都要求 resume token；每次成功返回新 token。发生冲突要比较和合并，不盲目重试。
+若不希望生成临时 JSON，直接使用 `--payload -` 并通过 heredoc 传入 JSON；`edit --file -`、`compact --summary-file -` 和 `promote --file -` 同样支持 stdin。传入普通文件时，脚本**只读不删**。下面两条命令分别预览和执行清理：
+
+```bash
+python3 scripts/pm.py clean
+python3 scripts/pm.py clean --apply
+```
+
+清理仅考虑 `.pm-runtime/` 根目录下超过默认 24 小时，且 JSON 的 `project_id`、`turn_id` 和规范化内容 SHA-256 与对应 Project receipts 一致的有效 `turn-*.json`；旧版无 Project 归属或无摘要的输入保留，需人工核实。`lock`、`pending.json`、未知文件、Markdown 和所有子目录均不删。可用 `--older-than-hours N` 调整候选年龄；执行前先核对预览。`clean` 不会自动在其他命令中运行。`doctor` 输出空间占用信息，超过 10 MiB 仅告警，不自动删除。
+
+命令行静态例子的用户确认标志只是示范，不应未获真实确认就照抄执行。所有 shared-state 写入都要求 resume token；每次成功返回新 token。发生冲突要比较和合并，不盲目重试。
 
 ## checkpoint JSON
 
@@ -41,6 +51,7 @@ python3 scripts/pm.py promote todo-cli --expected 实际TOKEN --title '可复用
 | 字段 | 规则 |
 |---|---|
 | turn_id | Project 内唯一，小写字母数字/下划线/连字符，1..80字符 |
+| project_id | 可选；通过文件传入时建议填写目标 Project ID，以便未来安全清理；不一致会拒绝 |
 | mode | clarify/research/plan/execute/review/learn/orchestrate |
 | progress / next / outcome | 必填非空文字 |
 | operations | 必填非空字符串数组，详细有意义的操作 |
