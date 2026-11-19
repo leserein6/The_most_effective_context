@@ -189,13 +189,21 @@ class Transaction:
     def __init__(self, store):
         self.s = store
         self.before = {}
+        self.created_dirs = set()
 
     def write(self, p, data, mode=None):
         p = self.s.guarded(p)
         key = str(p.relative_to(self.s.root))
         if key not in self.before:
+            # Record only directories absent before this transaction's write.
+            # Recovery must not remove directories that predated the operation.
+            parent = p.parent
+            while parent != self.s.root:
+                if not parent.exists():
+                    self.created_dirs.add(str(parent.relative_to(self.s.root)))
+                parent = parent.parent
             self.before[key] = {'data': base64.b64encode(p.read_bytes()).decode(), 'mode': p.stat().st_mode & 0o777} if p.exists() else None
-            atomic(self.s.journal, dump({'before': self.before}).encode())
+            atomic(self.s.journal, dump({'before': self.before, 'created_dirs': sorted(self.created_dirs)}).encode())
         if data is None:
             if p.exists():
                 p.unlink()
@@ -216,9 +224,13 @@ class Transaction:
 def rollback(s):
     if not s.journal.exists():
         return
-    changes = json.loads(s.journal.read_text())['before']
+    journal = json.loads(s.journal.read_text())
+    changes = journal['before']
+    created_dirs = journal.get('created_dirs', [])
+    if not isinstance(created_dirs, list) or any(not isinstance(rel, str) for rel in created_dirs):
+        raise ValueError('Invalid recovery directory list')
     # Validate the complete journal before modifying anything.
-    for rel in changes:
+    for rel in list(changes) + created_dirs:
         if Path(rel).is_absolute() or '..' in Path(rel).parts:
             raise ValueError('Invalid recovery path')
         s.guarded(s.root / rel)
@@ -231,6 +243,14 @@ def rollback(s):
                 p.unlink()
         else:
             atomic(p, base64.b64decode(old['data']), mode=old['mode'])
+    # Undo only empty directories that the write-ahead journal recorded as
+    # absent prior to the transaction. Never prune pre-existing or nonempty dirs.
+    for rel in sorted(created_dirs, key=lambda x: len(Path(x).parts), reverse=True):
+        folder = s.guarded(s.root / rel)
+        try:
+            folder.rmdir()
+        except OSError:
+            pass
     s.journal.unlink()
 
 
