@@ -13,12 +13,14 @@ from pathlib import Path, PurePosixPath
 import sys
 import tempfile
 
+from extensions import distribution_files
+
 MANIFEST = 'install-manifest.json'
 START = '\n<!-- project-harness:start -->\n'
 END = '\n<!-- project-harness:end -->\n'
 ENTRY_CHOICES = ('codebuddy', 'agents', 'both', 'none')
 WORK_SOP_SKILLS = ('work-new-task', 'work-report', 'work-daily', 'work-cross-team', 'work-meeting', 'work-error-response')
-RUNTIME_IGNORE = '.pm-runtime/\n__pycache__/\n*.pyc\n'
+RUNTIME_IGNORE = '.harness-local/\n.pm-runtime/\n__pycache__/\n*.pyc\n'
 INDEX_HEADER = {
     'Index.md': '# 活跃 Project 索引',
     'History.md': '# 归档与已完成 Project',
@@ -46,7 +48,9 @@ def load_manifest(source):
         raise ValueError('Manifest is missing required Harness files')
     if any(x.startswith(('docs/', 'tests/', 'evidence/evals/', 'project-management/projects/', 'examples/')) or x in ('.gitignore', '.env', 'README.md', 'AGENTS.md', 'CODEBUDDY.md', 'scripts/install.py', MANIFEST) for x in result):
         raise ValueError('Manifest includes maintainer-only, installation-only, or generated entry content')
-    return result
+    if any(path.startswith("extensions/") for path in result):
+        raise ValueError("Method package files belong in their extension declaration")
+    return result + distribution_files(source)
 
 
 def ensure_safe(path, boundary):

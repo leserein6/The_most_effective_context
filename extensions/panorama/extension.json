@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "panorama",
+  "tasks": ["answer", "proposal", "change", "assess", "learn"],
+  "when": "需要建立工程对象的全景、从零设计模块、检查能力覆盖或制定全局学习路线，且对象的组成或边界会影响交付。范围已定位的局部修复和单点问答直接处理。",
+  "output": "有范围和来源的能力图、本次相关分支、待核实项及停止理由。",
+  "entry": "method.md",
+  "resources": ["maps/microservice.md"]
+}

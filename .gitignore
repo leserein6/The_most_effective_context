@@ -18,3 +18,4 @@ evidence/testing/examples/strategy-input.json
 
 # Release bundles are generated; never commit them
 dist/
+.harness-local/

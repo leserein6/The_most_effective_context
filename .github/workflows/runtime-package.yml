@@ -30,6 +30,7 @@ jobs:
       - name: Smoke test installing only the downloaded archive
         run: |
           python3 - <<'PY'
+          import json
           import pathlib
           import subprocess
           import sys
@@ -58,6 +59,19 @@ jobs:
                   subprocess.run(command + ['--apply'], check=True)
                   pm_root = target if mode == 'workspace' else target / '.codebuddy/harness'
                   subprocess.run([sys.executable, str(pm_root / 'scripts/pm.py'), 'doctor'], check=True)
+                  # Discover only enabled method summaries from the installed package.
+                  extensions = [sys.executable, str(pm_root / 'scripts/extensions.py')]
+                  def discover():
+                      return json.loads(subprocess.check_output(extensions + ['list', '--task', 'proposal']))
+                  summary = next(item for item in discover() if item['id'] == 'panorama')
+                  assert (pm_root / summary['entry']).is_file()
+                  assert (pm_root / 'extensions/panorama/maps/microservice.md').is_file()
+                  project_index = pm_root / 'project-management/Index.md'
+                  index_before = project_index.read_bytes()
+                  subprocess.run(extensions + ['disable', 'panorama'], check=True)
+                  assert 'panorama' not in {item['id'] for item in discover()}
+                  subprocess.run(extensions + ['enable', 'panorama'], check=True)
+                  assert summary in discover() and project_index.read_bytes() == index_before
                   assert not (pm_root / 'docs').exists()
                   assert not (pm_root / 'tests').exists()
                   # Optional Skills ship inside the archive but must NOT appear in default workspaces.
