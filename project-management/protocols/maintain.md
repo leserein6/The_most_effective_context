@@ -6,8 +6,8 @@
 
 1. 首次 resume 保留 token 和读到的状态基线。
 2. 本轮收集有意义的操作流水、产物、验证、决策和剩余问题。不要记录模型私有思维过程、凭据或无意义鼠标点击。
-3. 写临时 JSON 到 `.pm-runtime/turn-<unique-id>.json`（Git 忽略；checkpoint 成功后由脚本自动删除，不必手工清理），字段参考 [WI 和 checkpoint 契约](../schema/work-items.md) 及原有 checkpoint 必填字段；运行包不包含 docs/。`.pm-runtime` 是唯一临时区：脚本在每次命令入口自动清扫超过 24 小时或使总量超过 10MB 的残留，只永久保留 `lock` 与 `pending.json`。
-4. 调用 checkpoint --expected TOKEN --payload FILE。按需携带 `work_item_ids`（本轮 Turn Task 关联）和 `work_item_updates`（增量 WI 创建/更新）；自动更新状态、决策、知识、详细流水和 Index。重复 turn_id 被拒绝。
+3. **优先通过标准输入**传入本轮 checkpoint JSON：`python3 scripts/pm.py checkpoint ID --expected TOKEN --payload -`（例如终端 heredoc），避免生成临时文件。字段参考 [WI 和 checkpoint 契约](../schema/work-items.md)；运行包不包含 docs/。必须使用文件时可传 `--payload FILE`，文件归调用方所有，脚本不会自行删除。历史 `.pm-runtime/turn-*.json` 可用 `pm.py clean` 预览；只有确认已持久化、超过保留时间的旧输入才列入清理候选。未知文件和目录永不自动清理。
+4. 调用 checkpoint --expected TOKEN --payload -（或 FILE）。按需携带 `work_item_ids`（本轮 Turn Task 关联）和 `work_item_updates`（增量 WI 创建/更新）；自动更新状态、决策、知识、详细流水和 Index。重复 turn_id 被拒绝。
 5. CONFLICT 时重新读取最新状态，比较基线与变化，合并自己与他人真实成果后再写；不能仅刷新 token 强行重试。
 6. 已确认决策需 user_evidence，建议写 proposed，旧决定保留并标失效关系。创建/状态迁移分别按 [Create](create.md)/[Lifecycle](lifecycle.md)，不由 checkpoint 代替。
 7. 工具失败时解决或报告未保存，不能对用户宣称记录成功。
