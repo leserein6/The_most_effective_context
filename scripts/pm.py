@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 import uuid
 
 TYPES = ('development', 'learning', 'one_off')
@@ -517,6 +518,13 @@ def checkpoint(s, a):
             tx.write(p / 'logs/compression-due.md', '阶段结束：请评估并生成有来源的摘要，再执行 compact。\n')
         bump(tx, p, m)
         s.indexes(tx)
+    payload = Path(a.payload).resolve()
+    try:
+        payload.relative_to(s.runtime.resolve())
+    except ValueError:
+        pass
+    else:
+        payload.unlink(missing_ok=True)
     return {'id': a.id, 'token': s.token(p), 'compression_due': compression_due(p), 'work_item_ids': refs}
 
 
@@ -525,9 +533,60 @@ def compression_due(p):
     return (current.exists() and current.stat().st_size >= 32768) or (p / 'logs/compression-due.md').exists()
 
 
+RUNTIME_TTL_SECONDS = 24 * 3600
+RUNTIME_MAX_BYTES = 10 * 1024 * 1024
+
+
+def runtime_bytes(path):
+    total = 0
+    for p in path.rglob('*'):
+        try:
+            if p.is_file() and not p.is_symlink():
+                total += p.stat().st_size
+        except OSError:
+            pass
+    return total
+
+
+def sweep_runtime(s):
+    """Drop expired scratch from .pm-runtime; lock and rollback payload stay."""
+    runtime = s.runtime
+    if not runtime.is_dir():
+        return
+    keep = {'lock', 'pending.json'}
+    now = time.time()
+
+    def drop(entry):
+        try:
+            if entry.is_symlink() or entry.is_file():
+                entry.unlink()
+            else:
+                shutil.rmtree(entry)
+        except OSError:
+            pass
+
+    for entry in list(runtime.iterdir()):
+        if entry.name in keep:
+            continue
+        try:
+            if now - entry.stat().st_mtime > RUNTIME_TTL_SECONDS:
+                drop(entry)
+        except OSError:
+            pass
+    if runtime_bytes(runtime) <= RUNTIME_MAX_BYTES:
+        return
+    entries = [e for e in runtime.iterdir() if e.name not in keep]
+    entries.sort(key=lambda e: e.stat().st_mtime if e.exists() else 0)
+    for entry in entries:
+        if runtime_bytes(runtime) <= RUNTIME_MAX_BYTES:
+            break
+        drop(entry)
+
+
 def run(a):
     s = Store(a.root)
     with s.lock(recovery=a.command == 'recover'):
+        sweep_runtime(s)
         if a.command == 'init':
             with Transaction(s) as tx:
                 s.indexes(tx)
