@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - 'codex/**'
+  pull_request:
+    branches:
+      - codex/project-workspace-v1-20261117
   workflow_dispatch:
 
 permissions:
