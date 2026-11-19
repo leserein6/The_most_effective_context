@@ -6,7 +6,7 @@
 |---|---|---|
 | project.md schema_version | 当前结构版本 1.0，由脚本生成 | 仅显式结构迁移时改变 |
 | id / name | 稳定 ID / 用户可识别名称 | ID 不随名称改变；改名用 describe |
-| type | development、learning、one_off | 按是否需跨会话延续选择：单会话可完成的短目标选 one_off，跨会话目标选 development/learning；创建时确认，现版不提供自动重分类 |
+| type | development、learning、one_off | 按任务规模与是否一次性选择：轻量、几轮可完成的一次性目标选 one_off，需要持续迭代或分阶段推进的选 development/learning，不以是否跨会话为判据；创建时确认，现版不提供自动重分类 |
 | summary | 独立目标的一句话描述，供 Index 识别 | 普通功能不替换项目整体目标；核心变化先处理冲突 |
 | definition.md 要解决的问题 | 从用户痛点和现状提炼为什么做 | 不根据方案反推虚构痛点 |
 | definition.md 期望结果 | 用户希望实现的外部效果 | 与具体技术选型分开；变化需明确依据 |

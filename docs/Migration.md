@@ -14,7 +14,7 @@
 | 旧 V0.2 | V1 |
 |---|---|
 | 只有长期项目操作才进入项目管理 | 每轮先检查活跃 Index，归属不足就问，不猜测 |
-| 仅长期目标是 Project | 一次性任务也属于 Project，可在单会话内多轮完成；需要跨会话延续的目标归 development/learning |
+| 仅长期目标是 Project | 一次性任务也属于 Project，通常是几轮交互即可完成的轻量目标；需要持续演进的目标归 development/learning |
 | active/paused/completed/archived | active/archived/completed；归档=未完成但暂不推进 |
 | projects/ID/project.yaml | project-management/projects/状态/类型/ID/，Markdown 多文件 |
 | 普通讨论不要求每轮写入 | 每轮回复前记录有意义流水和真实状态，提议仍保持提议 |

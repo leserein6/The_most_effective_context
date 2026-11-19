@@ -17,7 +17,7 @@
 | archived | 暂时不推进，目标未完成 |
 | completed | 目标已经达成 |
 
-每种状态均有 development（开发型）、learning（学习型）、one_off（一次性任务）。one_off 是短、可在单会话内完成的一次性目标，同一会话内可多轮；需要跨会话延续的目标归 development 或 learning，即使它有明确终点。一个独立目标对应一个 Project。**Turn Task** 仅用于本轮执行、不独立长期落盘；**Work Item（WI）** 是 Project 内可选的持久化工作项，有 ID、验收条件、依赖、状态和证据。两者不混用。详见 [WI 契约](schema/work-items.md)。
+每种状态均有 development（开发型）、learning（学习型）、one_off（一次性任务）。one_off 是轻量、几轮交互即可完成的一次性目标，规模小且不需要持续迭代或分阶段推进；判断依据是任务规模与是否一次性，不以是否跨会话为条件。需要长期演进的目标归 development 或 learning，即使它有明确终点。一个独立目标对应一个 Project。**Turn Task** 仅用于本轮执行、不独立长期落盘；**Work Item（WI）** 是 Project 内可选的持久化工作项，有 ID、验收条件、依赖、状态和证据。两者不混用。详见 [WI 契约](schema/work-items.md)。
 状态改变需用户确认；恢复归档或重新开启已完成项目也属于状态改变。创建默认为 active。
 
 ## 操作入口
