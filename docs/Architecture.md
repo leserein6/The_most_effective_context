@@ -68,7 +68,7 @@ flowchart TD
 | project-management/conventions/ | 用户确认后的公共积累 |
 | project-management/projects/状态/类型/ID/ | Project 权威数据 |
 | scripts/ | 项目管理、文件操作、安装及辅助校验工具 |
-| .pm-runtime/ | 本地锁、未完成事务、临时 payload；不入 Git |
+| .pm-runtime/ | 本地锁、未完成事务、历史临时输入；不入 Git。新 checkpoint 优先 stdin，未知目录不自动删除 |
 
 ## 单个 Project
 
