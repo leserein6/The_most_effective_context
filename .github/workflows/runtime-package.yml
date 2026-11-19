@@ -55,6 +55,17 @@ jobs:
                   subprocess.run([sys.executable, str(pm_root / 'scripts/pm.py'), 'doctor'], check=True)
                   assert not (pm_root / 'docs').exists()
                   assert not (pm_root / 'tests').exists()
+                  # Optional Skills ship inside the archive but must NOT appear in default workspaces.
+                  selected_skill = target / '.codebuddy/skills/work-report/SKILL.md'
+                  unselected_skill = target / '.codebuddy/skills/work-meeting/SKILL.md'
+                  assert not selected_skill.exists()
+                  assert not unselected_skill.exists()
+                  subprocess.run(command + ['--skills-only', '--skill', 'work-report', '--apply'], check=True)
+                  assert selected_skill.is_file()
+                  assert not unselected_skill.exists()
+                  # Installing the same selection twice must not modify the core.
+                  subprocess.run(command + ['--skills-only', '--skill', 'work-report', '--apply'], check=True)
+                  subprocess.run([sys.executable, str(pm_root / 'scripts/pm.py'), 'doctor'], check=True)
                   if mode == 'project':
                       assert (target / 'README.md').read_text() == 'Business documentation\n'
                       assert (target / '.gitignore').read_text() == 'business-ignore\n'
