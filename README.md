@@ -88,6 +88,19 @@ python3 /绝对路径/业务仓库/.codebuddy/harness/scripts/pm.py doctor
 
 自动保存 Project 状态不等于自动 `git commit` / `git push`；这些操作只在用户明确要求时进行。遇到版本升级冲突需要审查差异，不能自动覆盖现有项目记录。
 
+## 可选 Work SOP Skills
+
+默认安装不包含办公 SOP；需要时可逐个选择 `work-new-task`（接新任务）、`work-report`（向上汇报）、`work-daily`（日常安排）、`work-cross-team`（跨团队）、`work-meeting`（会议）、`work-error-response`（差错处理）。**没有下班交接 Skill**。六份完整流程和公开参考来源见 [Work SOP Pack](docs/Work_SOP_pack.md)（仅维护者文档，不安装）。
+
+首次安装时，在安装器命令中追加 `--skill work-report` 等选项即可选装。已经安装到业务仓库后，可以只增量安装一项，不重装核心和用户 Project：
+
+```bash
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --skills-only --skill work-report
+python3 "$DL_DIR/runtime/scripts/install.py" --target /绝对路径/业务仓库 --mode project --skills-only --skill work-report --apply
+```
+
+运行包包含这六份**待选装文件**，但默认不会复制到用户 Workspace。选择性安装遇到同名文件内容不同会停止，不覆盖用户修改；安装后用 CodeBuddy `/skills` 核实发现情况。Skills 不自带消息发送、定时提醒或生产操作授权。
+
 ## 常见边界
 
 - 项目状态写回、冲突检测、日志归档由本地 Python 脚本完成；自然语言路由、模式选择、多 Agent 调度以及实际测试质量还需要真实 CodeBuddy 环境验证。
