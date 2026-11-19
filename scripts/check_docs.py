@@ -5,7 +5,7 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES = ('docs', 'entry', 'project-management', 'evidence/methods')
+SOURCES = ('docs', 'entry', 'project-management', 'evidence/methods', 'extensions')
 errors = []
 for source in SOURCES:
     for path in sorted((ROOT / source).rglob('*.md')):

@@ -79,6 +79,7 @@
     "project-management/schema/progress.md",
     "project-management/schema/project.md",
     "project-management/schema/work-items.md",
+    "scripts/extensions.py",
     "scripts/pm.py",
     "scripts/prompt_library.py",
     "scripts/test_gate.py",

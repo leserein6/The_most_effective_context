@@ -88,6 +88,18 @@ python3 /绝对路径/业务仓库/.codebuddy/harness/scripts/pm.py doctor
 
 自动保存 Project 状态不等于自动 `git commit` / `git push`；这些操作只在用户明确要求时进行。遇到版本升级冲突需要审查差异，不能自动覆盖现有项目记录。
 
+## 工作方法插件
+
+从 Harness 根运行以下命令。独立 Workspace 的根是安装目录，嵌入模式的根为 `.codebuddy/harness/`。随包提供的全景图方法默认启用。
+
+```bash
+python3 scripts/extensions.py list --task proposal
+python3 scripts/extensions.py disable panorama
+python3 scripts/extensions.py enable panorama
+```
+
+新增方法包、为已有包补充资料及旧工作区接入见[方法插件设计与实施](docs/Method_extensions.md)。
+
 ## 可选 Work SOP Skills
 
 默认安装不包含办公 SOP；需要时可逐个选择 `work-new-task`（接新任务）、`work-report`（向上汇报）、`work-daily`（日常安排）、`work-cross-team`（跨团队）、`work-meeting`（会议）、`work-error-response`（差错处理）。**没有下班交接 Skill**。六份完整流程和公开参考来源见 [Work SOP Pack](docs/Work_SOP_pack.md)（仅维护者文档，不安装）。
@@ -123,4 +135,4 @@ python3 scripts/build_runtime.py --output dist/harness-runtime.zip
 python3 scripts/build_runtime.py --output dist/harness-runtime.zip --verify
 ```
 
-打包仅依据 `install-manifest.json`；`scripts/install.py` 和白名单是用户运行包所必需的，`docs/`、维护者资料和源项目数据永远不进入包。对应工作流为 `.github/workflows/runtime-package.yml`。
+核心按 `install-manifest.json` 打包，方法插件按各自的 `extension.json` 打包；`scripts/install.py` 和白名单是用户运行包所必需的，`docs/`、维护者资料和源项目数据永远不进入包。对应工作流为 `.github/workflows/runtime-package.yml`。

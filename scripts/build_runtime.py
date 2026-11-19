@@ -2,7 +2,7 @@
 """Build a minimal, reproducible Harness install archive for end users.
 
 Unlike git clone, the archive contains only install.py, its manifest, and the
-runtime files explicitly approved by install-manifest.json. It contains no
+runtime files enumerated by the core and method package manifests. It contains no
 maintainer docs, tests, source Project instances, or Git metadata.
 """
 import argparse

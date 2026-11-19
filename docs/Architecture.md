@@ -32,6 +32,10 @@ flowchart TD
 
 模式是通用流程中的可变部分；项目归属、上下文、证据、持久化、故障恢复是横跨模式的机制。
 
+## 方法插件扩展点
+
+Task 路由确定后，主 Agent 通过 `scripts/extensions.py list --task <类型>` 获取已启用的方法摘要。每个包自行声明适用条件、入口与资源，两种安装布局共用同一协议。设计、执行顺序、升级和验收见[工作方法插件](Method_extensions.md)。
+
 ## 方案质量闭环
 
 方案输出按问题/目标/现状/设计/计划/验证/风险组织现有方法，不新增强制全量工作流。需要时执行实施前 Review，得出 READY / EXPERIMENT / NEEDS_REVISION / BLOCKED；该判断不等于项目状态或已完成验证。权威需求、决策、验收和 WI 仍保存在现有 Project 文件，方案原文按需置于 work/。参见 [方案质量与就绪准则](Proposal_quality.md)。
