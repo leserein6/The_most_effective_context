@@ -33,7 +33,7 @@ harness-runtime.zip.sha256
 ```bash
 # 安装过 gh 并登录后即可使用（首次执行 gh auth login）
 REPO=leserein6/The_most_effective_context
-BRANCH=codex/project-workspace-v1-20261117
+BRANCH=main
 RUN_ID=$(gh run list --repo "$REPO" --workflow runtime-package.yml --branch "$BRANCH" --limit 20 --json databaseId,conclusion --jq '[.[] | select(.conclusion == "success")][0].databaseId')
 test -n "$RUN_ID" || { echo "没有找到成功的运行包构建，请查看仓库 Actions"; exit 1; }
 

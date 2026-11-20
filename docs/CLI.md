@@ -33,14 +33,14 @@ python3 scripts/pm.py compact todo-cli --expected 实际TOKEN --summary-file .pm
 python3 scripts/pm.py promote todo-cli --expected 实际TOKEN --title '可复用经验' --file .pm-runtime/candidate.md --reason '用户确认纳入' --confirmed
 ```
 
-若不希望生成临时 JSON，直接使用 `--payload -` 并通过 heredoc 传入 JSON；`edit --file -`、`compact --summary-file -` 和 `promote --file -` 同样支持 stdin。传入普通文件时，脚本**只读不删**。下面两条命令分别预览和执行清理：
+若不希望生成临时 JSON，直接使用 `--payload -` 并通过 heredoc 传入 JSON；`edit --file -`、`compact --summary-file -` 和 `promote --file -` 同样支持 stdin。Project 写事务开始前会自动检查旧临时输入，包括日常 checkpoint、编辑和状态变更。当前输入留到后续写入时再按下述条件判断。也可以单独预览或执行清理。
 
 ```bash
 python3 scripts/pm.py clean
 python3 scripts/pm.py clean --apply
 ```
 
-清理仅考虑 `.pm-runtime/` 根目录下超过默认 24 小时，且 JSON 的 `project_id`、`turn_id` 和规范化内容 SHA-256 与对应 Project receipts 一致的有效 `turn-*.json`；旧版无 Project 归属或无摘要的输入保留，需人工核实。`lock`、`pending.json`、未知文件、Markdown 和所有子目录均不删。可用 `--older-than-hours N` 调整候选年龄；执行前先核对预览。`clean` 不会自动在其他命令中运行。`doctor` 输出空间占用信息，超过 10 MiB 仅告警，不自动删除。
+清理仅考虑 `.pm-runtime/` 根目录下自最后修改起已满默认 24 小时，且 JSON 的 `project_id`、`turn_id` 和规范化内容 SHA-256 与对应 Project receipts 一致的有效 `turn-*.json`；旧版无 Project 归属或无摘要的输入保留，需人工核实。`lock`、`pending.json`、未知文件、Markdown 和所有子目录均不删。手动运行 `clean` 时可用 `--older-than-hours N` 临时调整候选年龄。日常清理由下一次 Project 写事务触发；只读命令和空闲期间不会触发。`doctor` 输出空间占用信息，超过 10 MiB 仅告警，不自动删除。
 
 命令行静态例子的用户确认标志只是示范，不应未获真实确认就照抄执行。所有 shared-state 写入都要求 resume token；每次成功返回新 token。发生冲突要比较和合并，不盲目重试。
 

@@ -360,10 +360,10 @@ jobs:
               b = payload('beta', 'same-turn')
               checkpoint('alpha', a)
               checkpoint('beta', b)
+              checkpoint('alpha', payload('alpha', 'alpha-only'))
               valid = old_file('turn-alpha.json', a)
               changed = old_file('turn-beta-changed.json', dict(b, outcome='uncommitted edit'))
               uncommitted = old_file('turn-forged.json', payload('beta', 'alpha-only'))
-              checkpoint('alpha', payload('alpha', 'alpha-only'))
               legacy = old_file('turn-legacy.json', {k: v for k, v in a.items() if k != 'project_id'})
               preview = call('clean')
               assert [v['path'] for v in preview['eligible']] == [valid.name], preview
@@ -371,6 +371,24 @@ jobs:
               assert applied['removed'] == [valid.name], applied
               assert not valid.exists()
               assert changed.exists() and uncommitted.exists() and legacy.exists()
+              old_file('turn-alpha.json', a)
+              recent = old_file('turn-recent.json', b)
+              os.utime(recent, None)
+              assert call('doctor')['ok'] and valid.exists()
+              call('checkpoint', 'alpha', '--expected', 'outdated', '--payload', '-',
+                   input_text=json.dumps(payload('alpha', 'later')), succeed=False)
+              assert valid.exists()
+              current = old_file('turn-current.json', payload('beta', 'current'))
+              call('checkpoint', 'beta', '--expected', call('resume', 'beta')['token'],
+                   '--payload', str(current))
+              assert not valid.exists() and current.exists() and recent.exists()
+              assert changed.exists() and uncommitted.exists() and legacy.exists()
+              # A later edit also triggers housekeeping; protect its own named input.
+              call('edit', 'beta', '--expected', call('resume', 'beta')['token'],
+                   '--document', 'notes.md', '--file', str(current), '--reason', 'input retained')
+              assert current.exists()
+              checkpoint('alpha', payload('alpha', 'later'))
+              assert not current.exists() and recent.exists()
               assert 'Duplicate turn_id' in call('checkpoint', 'alpha', '--expected',
                     call('resume', 'alpha')['token'], '--payload', '-',
                     input_text=json.dumps(a), succeed=False)
@@ -381,6 +399,15 @@ jobs:
               spec = importlib.util.spec_from_file_location('pm_under_test', workspace / 'scripts/pm.py')
               pm = importlib.util.module_from_spec(spec)
               spec.loader.exec_module(pm)
+              # Maintenance I/O failures must not discard a valid checkpoint.
+              new_turn = payload('alpha', 'cleanup-io-failure')
+              args_write = pm.parser().parse_args(['--root', str(workspace), 'checkpoint', 'alpha',
+                  '--expected', token, '--payload', '-'])
+              with mock.patch.object(pm, 'clean_runtime', side_effect=OSError('fixture: cleanup unavailable')), \
+                   mock.patch.object(pm, 'read_payload', return_value=new_turn):
+                  token = pm.run(args_write)['token']
+              assert 'cleanup-io-failure' in pm.receipt_records(
+                  workspace / 'project-management/projects/active/development/alpha/logs/receipts.md')
               args = pm.parser().parse_args(['--root', str(workspace), 'status', 'alpha',
                   '--expected', token, '--status', 'archived', '--reason', 'confirmed in test', '--confirmed'])
               with mock.patch.object(pm.shutil, 'disk_usage') as mocked:

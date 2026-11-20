@@ -186,8 +186,9 @@ class Store:
 
 
 class Transaction:
-    def __init__(self, store):
+    def __init__(self, store, input_path=None):
         self.s = store
+        self.input_path = input_path
         self.before = {}
         self.created_dirs = set()
 
@@ -211,6 +212,12 @@ class Transaction:
             atomic(p, data.encode() if isinstance(data, str) else data, mode=mode)
 
     def __enter__(self):
+        # Called under the workspace lock before the first journal or Project write.
+        try:
+            active_input = Path(self.input_path).resolve() if self.input_path not in (None, '-') else None
+            clean_runtime(self.s, apply=True, automatic=True, active_input=active_input)
+        except (OSError, ValueError) as exc:
+            print('Runtime cleanup skipped: ' + str(exc), file=sys.stderr)
         return self
 
     def __exit__(self, typ, val, tb):
@@ -547,7 +554,7 @@ def checkpoint(s, a):
     if any(work_item_id(wid) not in known for wid in refs):
         raise ValueError('Turn Task references unknown Work Item')
     refs = sorted(set(refs) | {v['id'] for v in updates})
-    with Transaction(s) as tx:
+    with Transaction(s, a.payload) as tx:
         if updates:
             tx.write(wi_path, encode_work_items(planned_wi))
         tx.write(p / 'state.md', '# 当前状态\n\n## 进度\n' + d['progress'] + '\n\n## 未解决问题\n' +
@@ -564,8 +571,6 @@ def checkpoint(s, a):
             tx.write(p / 'logs/compression-due.md', '阶段结束：请评估并生成有来源的摘要，再执行 compact。\n')
         bump(tx, p, m)
         s.indexes(tx)
-    # The caller owns --payload FILE. Never delete it implicitly; use --payload -
-    # (stdin) for zero scratch files.
     return {'id': a.id, 'token': s.token(p), 'compression_due': compression_due(p), 'work_item_ids': refs}
 
 
@@ -591,7 +596,7 @@ def runtime_bytes(path):
     return total
 
 
-def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
+def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS, *, automatic=False, active_input=None):
     """Conservatively clean only old, confirmed checkpoint-input files.
 
     Unknown files and *all* directories are reported but never deleted.
@@ -605,14 +610,17 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
         return {'dry_run': not apply, 'eligible': [], 'removed': [], 'preserved': [],
                 'reclaimable_bytes': 0, 'runtime_bytes': 0}
 
-    receipts = {meta['id']: receipt_records(project_path / 'logs/receipts.md')
-                for project_path, meta in s.projects()}
+    receipt_paths = None
+    receipts = {}
 
     eligible, preserved, removed = [], [], []
     now_timestamp = time.time()
     minimum_age = older_than_hours * 3600
     candidates = []
-    for entry in sorted(runtime.iterdir()):
+    entries = runtime.glob('turn-*.json') if automatic else runtime.iterdir()
+    for entry in sorted(entries):
+        if entry == active_input:
+            continue
         rel = entry.name
         if rel in ('lock', 'pending.json'):
             preserved.append({'path': rel, 'reason': 'lock or transaction recovery'})
@@ -635,7 +643,7 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
             continue
         try:
             data = json.loads(entry.read_text(encoding='utf-8'))
-        except (OSError, ValueError, UnicodeError):
+        except (OSError, ValueError, RecursionError):
             preserved.append({'path': rel, 'reason': 'invalid JSON'})
             continue
         if not isinstance(data, dict) or not isinstance(data.get('turn_id'), str) or not (
@@ -644,11 +652,19 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
             preserved.append({'path': rel, 'reason': 'invalid checkpoint input'})
             continue
         pid = data.get('project_id')
-        if not isinstance(pid, str) or pid not in receipts:
+        if receipt_paths is None:
+            receipt_paths = {meta['id']: path / 'logs/receipts.md' for path, meta in s.projects()}
+        if not isinstance(pid, str) or pid not in receipt_paths:
             preserved.append({'path': rel, 'reason': 'missing or unknown Project scope'})
             continue
+        if pid not in receipts:
+            receipts[pid] = receipt_records(s.guarded(receipt_paths[pid]))
         proofs = receipts[pid].get(data['turn_id'], [])
-        if len(proofs) != 1 or proofs[0] != payload_digest(data):
+        try:
+            confirmed = len(proofs) == 1 and proofs[0] == payload_digest(data)
+        except (ValueError, RecursionError):
+            confirmed = False
+        if not confirmed:
             preserved.append({'path': rel, 'reason': 'checkpoint digest not confirmed for Project'})
             continue
         eligible.append({'path': rel, 'bytes': stat_info.st_size,
@@ -660,13 +676,16 @@ def clean_runtime(s, apply=False, older_than_hours=RUNTIME_CLEAN_DEFAULT_HOURS):
             try:
                 current = entry.lstat()
                 if (not entry.is_symlink() and entry.is_file()
-                        and current.st_ino == scanned.st_ino
+                        and current.st_dev == scanned.st_dev and current.st_ino == scanned.st_ino
+                        and current.st_ctime_ns == scanned.st_ctime_ns
                         and current.st_mtime_ns == scanned.st_mtime_ns
                         and current.st_size == scanned.st_size):
                     entry.unlink()
                     removed.append(entry.name)
             except OSError:
                 pass
+    if automatic:
+        return  # The write path never walks subdirectories to compute capacity.
     return {'dry_run': not apply, 'eligible': eligible, 'removed': removed,
             'preserved': preserved, 'reclaimable_bytes': sum(x['bytes'] for x in eligible),
             'runtime_bytes': runtime_bytes(runtime)}
@@ -754,7 +773,7 @@ def run(a):
             target = a.document
             content = read_text_input(a.file)
             text_field(content, 'document')
-            with Transaction(s) as tx:
+            with Transaction(s, a.file) as tx:
                 tx.write(p / target, content)
                 append(tx, p / 'logs/current.md', '\n## {} | edit {}\n{}\n'.format(now(), target, text_field(a.reason, 'reason')))
                 bump(tx, p, m)
@@ -816,7 +835,7 @@ def run(a):
             stamp = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S') + '-' + uuid.uuid4().hex[:8]
             rel = 'logs/archive/' + stamp + '.md'
             digest = hashlib.sha256(content).hexdigest()
-            with Transaction(s) as tx:
+            with Transaction(s, a.summary_file) as tx:
                 tx.write(p / rel, content)
                 append(tx, p / 'logs/summary.md', '\n# 压缩 {}\n\n原始日志：[{}]({})\n\nSHA256: {}\n\n{}\n'.format(
                     stamp, stamp, 'archive/' + stamp + '.md', digest, summary))
@@ -835,7 +854,7 @@ def run(a):
             title = text_field(a.title, 'title', True)
             body = text_field(read_text_input(a.file), 'convention')
             user_evidence = text_field(a.reason, 'user confirmation evidence')
-            with Transaction(s) as tx:
+            with Transaction(s, a.file) as tx:
                 append(tx, s.base / 'conventions/README.md', '\n## {}\n\n来源 Project：{}；确认依据：{}\n\n{}\n'.format(title, a.id, user_evidence, body))
                 append(tx, p / 'logs/current.md', '\n## {} | promote\n公共积累：{}\n用户依据：{}\n'.format(now(), title, user_evidence))
                 bump(tx, p, m)
